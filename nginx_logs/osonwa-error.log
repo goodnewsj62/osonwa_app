@@ -1,0 +1,1 @@
+2022/05/22 20:09:59 [error] 24#24: *5 open() "/usr/share/nginx/html/favicon.ico" failed (2: No such file or directory), client: 172.23.0.1, server: localhost, request: "GET /favicon.ico HTTP/1.1", host: "127.0.0.1:9000", referrer: "http://127.0.0.1:9000/"
