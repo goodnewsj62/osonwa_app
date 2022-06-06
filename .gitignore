@@ -2,7 +2,8 @@ venv/*
 venv
 env
 
-
+migrations/
+migrations
 
 .*db
 db.*
@@ -22,3 +23,5 @@ nginx.*
 init.*
 
 *.txt
+*.log
+*.logs
