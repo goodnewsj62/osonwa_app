@@ -23,5 +23,9 @@ nginx.*
 init.*
 
 *.txt
+
 *.log
 *.logs
+
+*.sqlite*
+*.db

@@ -2,7 +2,6 @@ from uuid import uuid4
 
 from django.db import models
 from django.utils import timezone
-from django.utils.translation import gettext_lazy as _
 from django_quill.fields import QuillField
 
 from osonwa.resuable_models import UserReaction
@@ -11,7 +10,7 @@ from osonwa.resuable_models import UserReaction
 
 # -tags
 class Post(models.Model):
-    title = models.CharField(_("title"), max_length=300, blank=False, null=False)
+    title = models.CharField("title", max_length=300, blank=False, null=False)
     cover_image = models.ImageField(
         upload_to="/images/cover_images", default="/images/blogdefault.jpg"
     )
@@ -26,8 +25,8 @@ class Post(models.Model):
     )
 
     class Meta:
-        verbose_name = _("post")
-        verbose_name_plural = _("posts")
+        verbose_name = "post"
+        verbose_name_plural = "posts"
         ordering = ["-date_updated"]
 
     def __str__(self) -> str:
@@ -62,14 +61,14 @@ class PostImages(models.Model):
 
 
 class Tags(models.Model):
-    tag_name = models.CharField(_("tags"), max_length=300, unique=True, null=False)
+    tag_name = models.CharField("tags", max_length=300, unique=True, null=False)
     posts = models.ManyToManyField(
         "blog.Post", related_name="tags", related_query_name="tags"
     )
 
     class Meta:
-        verbose_name = _("tag")
-        verbose_name_plural = _("tags")
+        verbose_name = "tag"
+        verbose_name_plural = "tags"
 
     def __str__(self) -> str:
         return self.tag_name

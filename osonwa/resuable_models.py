@@ -10,15 +10,17 @@ class UserReaction(models.Model):
         related_name="%(app_label)s_%(class)s",
         related_query_name="%(app_label)s_%(class)s",
     )
-    reactions = models.JSONField(default=dict)
+    reaction = models.JSONField(default=dict)
 
     class Meta:
         abstract = True
 
-    def get_reactions(self):
-        return json.dumps(self.reactions)
+    @property
+    def reactions(self):
+        return json.dumps(self.reaction)
 
-    def set_reactions(self, data):
+    @reactions.setter
+    def reactions(self, data):
         if not isinstance(data, str):
             raise ValueError("must be a serialize json string")
 
@@ -30,7 +32,6 @@ class UserReaction(models.Model):
 
         self.reaction = existing_reactions
         self.save()
-        return self.get_reactions()
 
 
 # check if data is instance of str if it is get existing reaction and loads incoming reactions
