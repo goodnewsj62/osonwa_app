@@ -3,15 +3,18 @@ from uuid import uuid4
 from django.db import models
 from django.utils import timezone
 from django_quill.fields import QuillField
+from django.core.files.uploadedfile import InMemoryUploadedFile
 
+from osonwa.helpers import generate_b64_uuid_string, resizeImage
 from osonwa.resuable_models import UserReaction
 
 # Create your models here.
 
 # -tags
 class Post(models.Model):
-    ref = models.CharField(unique=True, max_length=20, blank=False, null=False)
+    post_id = models.CharField(unique=True, max_length=20, blank=False, null=False)
     title = models.CharField("title", max_length=300, blank=False, null=False)
+    slug_title = models.SlugField()
     cover_image = models.ImageField(
         upload_to="/images/cover_images", default="/images/blogdefault.jpg"
     )
@@ -35,6 +38,33 @@ class Post(models.Model):
 
     def __repr__(self) -> str:
         return f"<{self.title}>"
+
+    def save(self, *args, **kwargs) -> None:
+
+        self.post_id = self.create_post_id(self.post_id)
+        self.slug_title = self.title
+        self.image = self.inmemory_wrapper(self.image, "/images/blogdefault.jpg")
+
+        return super().save(*args, **kwargs)
+
+    def inmemory_wrapper(self, image, default_path: str):
+        if image == default_path:
+            return image
+
+        image_file = resizeImage(self.cover_image, width_size=500)
+        return InMemoryUploadedFile(
+            image_file,
+            "ImageField",
+            f"{image.name.split('.')[0]}.jpg",
+            "image/jpeg",
+            image_file.tell(),
+            None,
+        )
+
+    def create_post_id(self, post_id):
+        if not post_id:
+            return generate_b64_uuid_string()[:7]
+        return post_id
 
 
 class PostImages(models.Model):

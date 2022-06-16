@@ -6,7 +6,7 @@ from django.db import IntegrityError
 from django.core.exceptions import ValidationError
 
 from account.models import SocialAccount, User
-from .conftest import assert_equals, assert_false, assert_true
+from osonwa.helpers import assert_equals, assert_false, assert_true
 
 
 def test_user_creation(test_user_one):

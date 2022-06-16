@@ -43,21 +43,3 @@ def create_notification(db, test_user_one, test_user_two):
         post_content="test content",
         post_url="https://osonwa.com/blogs/username/idkoprt",
     )
-
-
-def assert_true(expr):
-    if expr:
-        assert True
-    else:
-        assert False
-
-
-def assert_false(expr):
-    if not expr:
-        assert True
-    else:
-        assert False
-
-
-def assert_equals(input_a, input_b):
-    assert input_a == input_b
