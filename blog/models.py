@@ -10,6 +10,7 @@ from osonwa.resuable_models import UserReaction
 
 # -tags
 class Post(models.Model):
+    ref = models.CharField(unique=True, max_length=20, blank=False, null=False)
     title = models.CharField("title", max_length=300, blank=False, null=False)
     cover_image = models.ImageField(
         upload_to="/images/cover_images", default="/images/blogdefault.jpg"

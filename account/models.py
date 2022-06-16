@@ -5,11 +5,7 @@ from account.custom_manger import UserManager
 
 # Create your models here.
 class User(AbstractBaseUser, PermissionsMixin):
-    email = models.EmailField(
-        "email address",
-        max_length=300,
-        unique=True,
-    )
+    email = models.EmailField("email address", max_length=300, unique=True)
     username = models.CharField(max_length=300, unique=True, blank=False, null=False)
     first_name = models.CharField("first name", max_length=300, null=False, blank=True)
     last_name = models.CharField("last name", max_length=300, null=False, blank=True)
@@ -88,6 +84,8 @@ class Profile(models.Model):
 
 
 class Notification(models.Model):
+    ACTIONS = [("comment", "comment"), ("react", "react")]
+
     owner = models.ForeignKey(
         "account.User",
         null=False,
@@ -97,7 +95,7 @@ class Notification(models.Model):
     )
 
     action_by = models.ForeignKey("account.User", null=False, on_delete=models.CASCADE)
-    action = models.CharField(max_length=80, blank=False, null=False)
+    action = models.CharField(max_length=80, choices=ACTIONS, blank=False, null=False)
     post_url = models.URLField()
     post_content = models.TextField(null=False, blank=False)
     is_read = models.BooleanField(default=False)

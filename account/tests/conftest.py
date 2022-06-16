@@ -26,5 +26,38 @@ def test_user_one(create_user_object):
 
 
 @pytest.fixture
-def create_notification(db):
-    Notification.objects.create()
+def test_user_two(create_user_object):
+    param = {"first_name": "kelz", "last_name": "manny"}
+
+    return create_user_object(
+        email="kelz@gmail.com", username="kelz", password="password", **param
+    )
+
+
+@pytest.fixture
+def create_notification(db, test_user_one, test_user_two):
+    return Notification.objects.create(
+        owner=test_user_one,
+        action_by=test_user_two,
+        action="react",
+        post_content="test content",
+        post_url="https://osonwa.com/blogs/username/idkoprt",
+    )
+
+
+def assert_true(expr):
+    if expr:
+        assert True
+    else:
+        assert False
+
+
+def assert_false(expr):
+    if not expr:
+        assert True
+    else:
+        assert False
+
+
+def assert_equals(input_a, input_b):
+    assert input_a == input_b
