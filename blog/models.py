@@ -43,15 +43,18 @@ class Post(models.Model):
 
         self.post_id = self.create_post_id(self.post_id)
         self.slug_title = self.title
-        self.image = self.inmemory_wrapper(self.image, "/images/blogdefault.jpg")
+        self.cover_image = self.inmemory_wrapper(
+            self.cover_image, "/images/blogdefault.jpg"
+        )
 
         return super().save(*args, **kwargs)
 
-    def inmemory_wrapper(self, image, default_path: str):
+    @staticmethod
+    def inmemory_wrapper(image, default_path: str):
         if image == default_path:
             return image
 
-        image_file = resizeImage(self.cover_image, width_size=500)
+        image_file = resizeImage(image, width_size=500)
         return InMemoryUploadedFile(
             image_file,
             "ImageField",
@@ -77,9 +80,7 @@ class PostImages(models.Model):
         related_query_name="images",
     )
 
-    image_url = models.ImageField(
-        upload_to="images/blog_images/", null=False, blank=False
-    )
+    image = models.ImageField(upload_to="images/blog_images/", null=False, blank=False)
 
     class Meta:
         verbose_name_plural = "posts images"
@@ -89,6 +90,10 @@ class PostImages(models.Model):
 
     def __repr__(self) -> str:
         return f"{str(self.reg)[:7]}"
+
+    def save(self, *args, **kwargs) -> None:
+        self.image = Post.inmemory_wrapper(self.image, "")
+        return super().save(*args, **kwargs)
 
 
 class Tags(models.Model):
