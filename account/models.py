@@ -89,7 +89,11 @@ class Profile(models.Model):
 
 
 class Notification(models.Model):
-    ACTIONS = [("comment", "comment"), ("react", "react")]
+    ACTIONS = [
+        ("comment", "comment"),
+        ("react", "react"),
+        ("recommendation", "recommendation"),
+    ]
 
     owner = models.ForeignKey(
         "account.User",
@@ -99,10 +103,11 @@ class Notification(models.Model):
         related_query_name="notifications",
     )
 
-    action_by = models.ForeignKey("account.User", null=False, on_delete=models.CASCADE)
+    action_by = models.ForeignKey("account.User", null=True, on_delete=models.CASCADE)
     action = models.CharField(max_length=80, choices=ACTIONS, blank=False, null=False)
     post_url = models.URLField()
-    post_content = models.TextField(null=False, blank=False)
+    backend_url = models.URLField()
+    post_content = models.TextField(null=True, blank=True)
     is_read = models.BooleanField(default=False)
     date_created = models.DateTimeField(auto_now_add=True)
 
