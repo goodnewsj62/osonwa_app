@@ -4,19 +4,32 @@ from django.db import models
 from django.utils import timezone
 from django_quill.fields import QuillField
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.core.validators import FileExtensionValidator
 
-from osonwa.helpers import generate_b64_uuid_string, resizeImage
+from osonwa.helpers import generate_b64_uuid_string, inmemory_wrapper
 from osonwa.resuable_models import UserReaction
 
 # Create your models here.
 
+
+class Bundle(models.Model):
+    topic = models.CharField(max_length=80, null=False, blank=False)
+    poster = models.ImageField(
+        upload_to="/images/cover_images",
+        validators=[FileExtensionValidator(allowed_extensions=["jpeg", "jpg", "webp"])],
+        null=True,
+    )
+
+
 # -tags
 class Post(models.Model):
-    post_id = models.CharField(unique=True, max_length=20, blank=False, null=False)
+    post_id = models.CharField(unique=True, max_length=20, blank=True, null=True)
     title = models.CharField("title", max_length=300, blank=False, null=False)
-    slug_title = models.SlugField()
+    slug_title = models.SlugField(null=True, blank=True)
     cover_image = models.ImageField(
-        upload_to="/images/cover_images", default="/images/blogdefault.jpg"
+        upload_to="/images/cover_images",
+        validators=[FileExtensionValidator(allowed_extensions=["jpeg", "jpg", "webp"])],
+        null=True,
     )
     date_published = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(default=timezone.now)
@@ -27,6 +40,15 @@ class Post(models.Model):
         related_name="posts",
         related_query_name="posts",
     )
+    bundle = models.ForeignKey(
+        "blog.Bundle",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="posts",
+        related_query_name="posts",
+    )
+
+    order = models.IntegerField()
 
     class Meta:
         verbose_name = "post"
@@ -43,26 +65,9 @@ class Post(models.Model):
 
         self.post_id = self.create_post_id(self.post_id)
         self.slug_title = self.title
-        self.cover_image = self.inmemory_wrapper(
-            self.cover_image, "/images/blogdefault.jpg"
-        )
+        self.cover_image = inmemory_wrapper(self.cover_image, "/images/blogdefault.jpg")
 
         return super().save(*args, **kwargs)
-
-    @staticmethod
-    def inmemory_wrapper(image, default_path: str):
-        if image == default_path:
-            return image
-
-        image_file = resizeImage(image, width_size=500)
-        return InMemoryUploadedFile(
-            image_file,
-            "ImageField",
-            f"{image.name.split('.')[0]}.jpg",
-            "image/jpeg",
-            image_file.tell(),
-            None,
-        )
 
     def create_post_id(self, post_id):
         if not post_id:
@@ -92,7 +97,7 @@ class PostImages(models.Model):
         return f"{str(self.reg)[:7]}"
 
     def save(self, *args, **kwargs) -> None:
-        self.image = Post.inmemory_wrapper(self.image, "")
+        self.image = inmemory_wrapper(self.image, "")
         return super().save(*args, **kwargs)
 
 

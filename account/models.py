@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 
 from account.custom_manger import UserManager
+from osonwa.helpers import inmemory_wrapper
 
 # Create your models here.
 class User(AbstractBaseUser, PermissionsMixin):
@@ -77,10 +78,14 @@ class Profile(models.Model):
         verbose_name_plural = "profile"
 
     def __repr__(self):
-        return f"<{self.user.email}>"
+        return f"Profile({self.user.email})"
 
     def __str__(self):
         return f"{self.user.email}"
+
+    def save(self, *args, **kwargs):
+        self.image = inmemory_wrapper(self.image, "images/default.jpg")
+        return super().save(*args, **kwargs)
 
 
 class Notification(models.Model):
@@ -106,7 +111,7 @@ class Notification(models.Model):
         verbose_name_plural = "notifications"
 
     def __repr__(self):
-        return f"<{self.owner.email}>"
+        return f"Notification({self.owner.email})"
 
     def __str__(self):
         return f"{self.owner.email}"
