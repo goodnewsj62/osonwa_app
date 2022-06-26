@@ -29,3 +29,9 @@ init.*
 
 *.sqlite*
 *.db
+
+media/*
+images/*
+
+__pycache__
+.pytest_cache

@@ -35,6 +35,7 @@ def resizeImage(image, width_size=400, format_: str = "jpeg"):
     file = Image.open(image)
     thumb_io = BytesIO()
     width, height = file.size
+    format_ = "jpeg" if format_ == "jpg" else format_
     # keep aspect ratio
     file = file.resize([width_size, int((width_size * height) / width)])
     try:
@@ -62,3 +63,7 @@ def inmemory_wrapper(image, default_path: str):
         image_file.tell(),
         None,
     )
+
+
+def dictfrom_django_choice_field(dj_choices):
+    return {choice[0]: choice[1] for choice in dj_choices}

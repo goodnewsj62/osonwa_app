@@ -1,16 +1,22 @@
-import pytest
+from pytest_factoryboy import register
 
-from account.tests.conftest import test_user_one
-from blog.models import Post
-
-
-@pytest.fixture
-def post_one(db, test_user_one):
-    return Post.objects.create(
-        author=test_user_one,
-        title="the sun is also a star",
-    )
+from blog.factories import (
+    BundleFactory,
+    PostFactory,
+    PostImagesFactory,
+    PostUserReactionFactory,
+)
 
 
-# @pytest.fixture
-# def Post
+factories_ = [
+    (BundleFactory, "bundle"),
+    (PostFactory, "post"),
+    (PostImagesFactory, "post_image"),
+    (PostUserReactionFactory, "post_user"),
+]
+
+for factory in factories_:
+    register(
+        factory[0]
+    )  # factories needed globally by other factories defining subfactory from them
+    register(factory[0], f"{factory[1]}_a")

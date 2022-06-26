@@ -9,6 +9,10 @@ from account.models import SocialAccount, User
 from osonwa.helpers import assert_equals, assert_false, assert_true
 
 
+def generate_random_char(length=10):
+    return "".join(choices(string.ascii_lowercase, k=length))
+
+
 def test_user_creation(test_user_one):
     assert_equals(test_user_one.username, "testuser")
 
@@ -118,5 +122,11 @@ def test_social_empty_user(db):
         )
 
 
-def generate_random_char(length=10):
-    return "".join(choices(string.ascii_lowercase, k=length))
+def test_notification_is_read_false(db, create_notification):
+    assert create_notification.is_read == False
+
+
+def test_notification_empty_owner(db, create_notification):
+    create_notification.owner = None
+    with pytest.raises(IntegrityError):
+        create_notification.save()

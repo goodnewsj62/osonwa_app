@@ -15,7 +15,7 @@ from osonwa.resuable_models import UserReaction
 class Bundle(models.Model):
     topic = models.CharField(max_length=80, null=False, blank=False)
     poster = models.ImageField(
-        upload_to="/images/cover_images",
+        upload_to="images/cover_images/",
         validators=[FileExtensionValidator(allowed_extensions=["jpeg", "jpg", "webp"])],
         null=True,
     )
@@ -27,7 +27,7 @@ class Post(models.Model):
     title = models.CharField("title", max_length=300, blank=False, null=False)
     slug_title = models.SlugField(null=True, blank=True)
     cover_image = models.ImageField(
-        upload_to="/images/cover_images",
+        upload_to="images/cover_images/",
         validators=[FileExtensionValidator(allowed_extensions=["jpeg", "jpg", "webp"])],
         null=True,
     )
@@ -36,6 +36,7 @@ class Post(models.Model):
     content = QuillField()
     author = models.ForeignKey(
         "account.User",
+        null=False,
         on_delete=models.CASCADE,
         related_name="posts",
         related_query_name="posts",
@@ -115,7 +116,7 @@ class Tags(models.Model):
         return self.tag_name
 
 
-class PostsUserReactions(UserReaction):
+class PostUserReactions(UserReaction):
     post = models.ForeignKey(
         "blog.Post",
         on_delete=models.CASCADE,

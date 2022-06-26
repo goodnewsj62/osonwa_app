@@ -42,4 +42,5 @@ def create_notification(db, test_user_one, test_user_two):
         action="react",
         post_content="test content",
         post_url="https://osonwa.com/blogs/username/idkoprt",
+        backend_url="https://osonwa/bla",
     )
