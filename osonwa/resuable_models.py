@@ -21,11 +21,11 @@ class UserReaction(models.Model):
 
     @reactions.setter
     def reactions(self, data):
-        if not isinstance(data, str):
-            raise ValueError("must be a serialize json string")
+        if not isinstance(data, dict):
+            raise ValueError("must be a mapping")
 
         existing_reactions = self.reaction
-        incoming_reactions = json.loads(data).keys()
+        incoming_reactions = data.keys()
 
         for reaction in incoming_reactions:
             existing_reactions[reaction] = existing_reactions.get(reaction, 0) + 1
