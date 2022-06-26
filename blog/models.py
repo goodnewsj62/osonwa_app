@@ -3,8 +3,9 @@ from uuid import uuid4
 from django.db import models
 from django.utils import timezone
 from django_quill.fields import QuillField
-from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.template.defaultfilters import slugify
 from django.core.validators import FileExtensionValidator
+
 
 from osonwa.helpers import generate_b64_uuid_string, inmemory_wrapper
 from osonwa.resuable_models import UserReaction
@@ -65,7 +66,7 @@ class Post(models.Model):
     def save(self, *args, **kwargs) -> None:
 
         self.post_id = self.create_post_id(self.post_id)
-        self.slug_title = self.title
+        self.slug_title = slugify(self.title)
         self.cover_image = inmemory_wrapper(self.cover_image, "/images/blogdefault.jpg")
 
         return super().save(*args, **kwargs)
@@ -105,7 +106,7 @@ class PostImages(models.Model):
 class Tags(models.Model):
     tag_name = models.CharField("tags", max_length=300, unique=True, null=False)
     posts = models.ManyToManyField(
-        "blog.Post", related_name="tags", related_query_name="tags"
+        "blog.Post", null=True, related_name="tags", related_query_name="tags"
     )
 
     class Meta:

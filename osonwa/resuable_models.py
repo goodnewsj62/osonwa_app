@@ -1,5 +1,3 @@
-import json
-
 from django.db import models
 
 
@@ -17,7 +15,7 @@ class UserReaction(models.Model):
 
     @property
     def reactions(self):
-        return json.dumps(self.reaction)
+        return self.reaction
 
     @reactions.setter
     def reactions(self, data):
@@ -31,7 +29,6 @@ class UserReaction(models.Model):
             existing_reactions[reaction] = existing_reactions.get(reaction, 0) + 1
 
         self.reaction = existing_reactions
-        self.save()
 
 
 # check if data is instance of str if it is get existing reaction and loads incoming reactions

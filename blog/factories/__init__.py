@@ -31,7 +31,7 @@ class PostFactory(factory.django.DjangoModelFactory):
     author = factory.SubFactory("account.factories.UserFactory")
     bundle = factory.SubFactory(BundleFactory)
     random_num = factory.Faker("random_digit")
-    order = factory.LazyAttribute(lambda o: o.random_num if o.bundle else None)
+    order = factory.LazyAttribute(lambda o: o.random_num + 1 if o.bundle else None)
 
 
 class PostImagesFactory(factory.django.DjangoModelFactory):
@@ -51,3 +51,10 @@ class PostUserReactionFactory(factory.django.DjangoModelFactory):
     post = factory.SubFactory(PostFactory)
     user = factory.SubFactory("account.factories.UserFactory")
     reactions = {"unicode": "simley", "unicode2": "shit"}
+
+
+class TagFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "blog.Tags"
+
+    tag_name = factory.Faker("name")

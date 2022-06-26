@@ -1,10 +1,11 @@
-from pytest_factoryboy import register
+from pytest_factoryboy import LazyFixture, register
 
 from blog.factories import (
     BundleFactory,
     PostFactory,
     PostImagesFactory,
     PostUserReactionFactory,
+    TagFactory,
 )
 
 
@@ -12,8 +13,10 @@ factories_ = [
     (BundleFactory, "bundle"),
     (PostFactory, "post"),
     (PostImagesFactory, "post_image"),
-    (PostUserReactionFactory, "post_user"),
+    (PostUserReactionFactory, "post_reaction"),
+    (TagFactory, "tag"),
 ]
+
 
 for factory in factories_:
     register(
