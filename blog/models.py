@@ -8,7 +8,7 @@ from django.core.validators import FileExtensionValidator
 
 
 from osonwa.helpers import generate_b64_uuid_string, inmemory_wrapper
-from osonwa.resuable_models import UserReaction
+from osonwa.general_models import UserReaction
 
 # Create your models here.
 
@@ -118,9 +118,7 @@ class Tags(models.Model):
 
 
 class PostUserReactions(UserReaction):
-    post = models.ForeignKey(
+    post = models.OneToOneField(
         "blog.Post",
         on_delete=models.CASCADE,
-        related_name="reactions",
-        related_query_name="reactions",
     )

@@ -139,3 +139,10 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 # Rest framework
 REST_FRAMEWORK = {}
+
+
+# CELERY
+CELERY_BROKER_URL = "redis://localhost:6379"
+CELERY_RESULT_BACKEND = "redis://localhost:6379"
+CELERYBEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+CELERY_ACKS_LATE = True

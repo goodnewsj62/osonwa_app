@@ -26,35 +26,6 @@ def make_request(url, metthod="get", headers={}):
     return None
 
 
-class ProcessMarkUp:
-    def __init__(self, markup: str) -> None:
-        self.soup = bs4.BeautifulSoup(markup, "lxml")
-
-    def extract_text_from_body(self):
-        return self.soup.body.get_text()
-
-    def extract_text(self):
-        return self.soup.get_text()
-
-    def extract_image(self):
-        image_result = self.soup.body.img
-        image = image_result.get("src") if image_result else None
-        if image and re.findall(r"\.(jpg|png|webp|jpeg)", image):
-            return image
-        else:  # some rss had image url with invalid image src
-            return None
-
-    def get_bsmarkup(self):
-        return self.soup
-
-    def get_icon(self):
-        head = self.soup.find("head")
-        icon_link = head.find("link", rel="icon")
-        if icon_link:
-            return icon_link.get("href")
-        return
-
-
 class ScrapingStrategy(ABC):
     """
     scraping could be tedious, different site have different mark up and most website change
@@ -237,3 +208,36 @@ class GitBlogStrategy(ScrapingStrategy):
             save_article(
                 link=link, title=title, image_url=image_url, summary=summary, date=date
             )
+
+
+blog_urls = [
+    # "https://css-tricks.com",
+    # "https://www.digitalocean.com/community/tutorials",
+    # "https://medium.com/tag/programming",
+    # "https://medium.com/tag/python",
+    # "https://medium.com/tag/go",
+    # "https://www.freecodecamp.org/news",
+    # "https://www.syncfusion.com/blogs",
+    # "https://about.gitlab.com/blog/",
+]
+
+# templates = {
+#     "digitalocean": DigitalOceanStrategy,
+#     "css-tricks": CssTrickStrategy,
+#     "medium": MediumStrategy,
+#     "freecodecamp": FreeCodeCampStrategy,
+#     "syncfusion": SyncFusionStrategy,
+#     "about.gitlab": GitBlogStrategy,
+# }
+
+# for url in blog_urls:
+#     vendor = ProcessRssFeed.vendor_fromurl(url)
+#     response = make_request(url)
+#     if not response:
+#         continue
+#     process_markup = ProcessMarkUp(response)
+#     soup = process_markup.get_bsmarkup()
+#     template = templates[vendor](soup)
+#     print(f"ICON---{process_markup.get_icon()}")
+#     # new_save = partial(vendor_icon=process_markup.get_icon() )
+#     template.handle(save_article=lambda **kwargs: print(kwargs))
