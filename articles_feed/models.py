@@ -1,9 +1,15 @@
 from django.db import models
 from django.conf import settings
 
-from osonwa.general_models import UserFeedGroup
+from osonwa.general_models import Feed, UserFeedGroup
 
 # Create your models here.
+
+
+class ArticlesFeed(Feed):
+    class Meta:
+        verbose_name_plural = "articles feed"
+        ordering = "-date_published"
 
 
 class ContentArticleFeedGroup(UserFeedGroup):
@@ -19,8 +25,14 @@ class ContentArticleFeedGroup(UserFeedGroup):
 
 
 class ContentBasedRecommendedArticles(object):
-    group = models.OneToOneField()
-    feeds = models.ManyToManyField()
+    group = models.OneToOneField(
+        "articles_feed.ContentArticleFeedGroup", on_delete=models.CASCADE
+    )
+    feeds = models.ManyToManyField(
+        "articles_feed.ArticlesFeed",
+        related_name="content_recommendations",
+        related_query_name="content_recommendations",
+    )
 
     class Meta:
         pass
@@ -35,8 +47,14 @@ class CollaborativeArticleFeedGroup(UserFeedGroup):
 
 
 class CollabBasedRecommendedArticles(object):
-    group = models.OneToOneField()
-    feeds = models.ManyToManyField()
+    group = models.OneToOneField(
+        "articles_feed.CollaborativeArticleFeedGroup", on_delete=models.CASCADE
+    )
+    feeds = models.ManyToManyField(
+        "articles_feed.ArticlesFeed",
+        related_name="collaborative_recommendations",
+        related_query_name="collaborative_recommendations",
+    )
 
     class Meta:
         pass

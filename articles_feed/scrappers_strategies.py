@@ -1,29 +1,7 @@
 from abc import ABC, abstractmethod
-import time
-from functools import partial
 import random
 import re
-
-
-import requests
-import bs4
-
-
-def make_request(url, metthod="get", headers={}):
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.82 Mobile Safari/537.36",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Upgrade-Insecure-Requests": "1",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-        **headers,
-    }
-    response = requests.request(method=metthod, url=url, headers=headers)
-    if response.status_code == 200:
-        return response.content
-    print(
-        f"GET REQUEST PROBLEM:--------------: {response} :---- FROM:{url}"
-    )  # stdout for logging
-    return None
+from datetime import datetime, timedelta, timezone
 
 
 class ScrapingStrategy(ABC):
@@ -34,15 +12,20 @@ class ScrapingStrategy(ABC):
     """
 
     @abstractmethod
-    def handle(self, save_article=None):
+    def handle(self):
         """plug algorithm variation here"""
+
+    @staticmethod
+    @abstractmethod
+    def to_native_date(date_str: str):
+        pass
 
 
 class CssTrickStrategy(ScrapingStrategy):
     def __init__(self, soup) -> None:
         self.soup = soup
 
-    def handle(self, save_article=None):
+    def handle(self):
         article_list = self.soup.find_all("article", class_="article-card")
         for article in article_list:
             if "sponsored" in article.find(class_="author-row").get_text().lower():
@@ -59,19 +42,25 @@ class CssTrickStrategy(ScrapingStrategy):
             summary = content.find("p").get_text(), content.find("p")
             date = re.sub(r"\n", "", article.find("time").get_text().strip())
 
-            save_article(
-                link=link, title=title, image_url=image_url, summary=summary, date=date
+            return dict(
+                link=link,
+                title=title,
+                image_url=image_url,
+                summary=summary,  # clean the summary
+                date=self.to_native_date(date),
             )
+
+    @staticmethod
+    def to_native_date(date_str: str):
+        return datetime.strptime(date_str, r"%b %d, %Y")
 
 
 class DigitalOceanStrategy(ScrapingStrategy):
     def __init__(self, soup) -> None:
         self.soup = soup
 
-    def handle(self, save_article=None):
-        articles = self.soup.find(
-            class_=re.compile(r"^IndexListStyles__Styled")
-        ).find_all("li")
+    def handle(self):
+        articles = self.soup.find_all("a", class_=re.compile(r"^Tutorial"))
 
         for article in articles:
             header = article.find("h3")
@@ -79,85 +68,129 @@ class DigitalOceanStrategy(ScrapingStrategy):
 
             next_siblings = list(next_siblings)
             title = header.get_text()
-            link = "https://www.digitalocean.com" + header.find("a").get("href")
+            link = "https://www.digitalocean.com" + article.get("href")
             image_url = None
-            summary = next_siblings[0].get_text()
+            summary = None
             date = next_siblings[-1].find("span").get_text()
-            save_article(
-                link=link, title=title, image_url=image_url, summary=summary, date=date
+            return dict(
+                link=link,
+                title=title,
+                image_url=image_url,
+                summary=summary,
+                date=self.to_native_date(date),
             )
+
+    @staticmethod
+    def to_native_date(date_str: str):
+        return datetime.strptime(date_str, r"%B %d, %Y")
 
 
 class MediumStrategy(ScrapingStrategy):
     def __init__(self, soup) -> None:
         self.soup = soup
 
-    def handle(self, save_article=None):
+    def handle(self):
         articles = self.soup.find_all("article")
         # helps not to follow sequencial order like a bot
-        articles = random.sample(articles, k=len(articles))
+        # articles = random.sample(articles, k=len(articles))
         for article in articles:
             link = article.find_all("a", limit=5)
-            date = link[3].find("p")
+            date = article.find(string=re.compile("ago$"))
             summary = article.find_all("p")
             # too many p with random class look for the one with most number of words
             summary = filter(lambda x: len(x.get_text()) > 20, summary)
 
             title = article.find("h2").get_text()
             link = "https://medium.com" + link[-1].get("href")
-            date = date.get_text()
-            if len(date) > 15:
-                # handle bad format data
-                continue
-
-            image_url = self.get_image_url(link)
+            image_url = article.find("img").get("src")
 
             try:
                 summary = list(summary)[0].get_text()
             except IndexError:
                 summary = None
 
-            save_article(
-                link=link, title=title, image_url=image_url, summary=summary, date=date
+            return dict(
+                link=link,
+                title=title,
+                image_url=image_url,
+                summary=summary,
+                date=self.to_native_date(date),
             )
 
-    def get_image_url(self, link):
-        response = make_request(link)
-        # hit at different time interval like human
-        time.sleep(random.choice([120, 60, 100, 80]))
+    @staticmethod
+    def to_native_date(date_str: str):
+        search_result = re.search(r"(\d+)\s(.+)\s", date_str)
+        num = search_result.groups()[0]
+        str_ = search_result.groups()[1]
 
-        if response:
-            soup = bs4.BeautifulSoup(response, "lxml")
-            main = soup.find("main")
-            images = main.find_all("img", limit=3)
-            return images[-1].get("src")
-        return None
+        if str_.startswith("hour"):
+            return datetime.now(tz=timezone.utc) - timedelta(hours=int(num))
+        elif str_.startswith("day"):
+            return datetime.now(tz=timezone.utc) - timedelta(days=int(num))
 
 
 class FreeCodeCampStrategy(ScrapingStrategy):
     def __init__(self, soup) -> None:
         self.soup = soup
 
-    def handle(self, save_article=None):
+    def handle(self):
         articles = self.soup.find_all("article")
         for article in articles:
             image_url = article.find("img").get("data-cfsrc")
             title = article.find("h2").get_text().strip()
             link = article.find("h2").a.get("href")
-            date = article.find("time").get_text()
+            date = list(article.find("time").stripped_strings)
             summary = None
 
             # print("\n\n", title, "\n", image_url, "\n", link, "\n", date)
-            save_article(
-                link=link, title=title, image_url=image_url, summary=summary, date=date
+            return dict(
+                link=link,
+                title=title,
+                image_url=image_url,
+                summary=summary,
+                date=self.to_native_date(date[0]),
             )
+
+    @staticmethod
+    def to_native_date(date_str):
+        search_result = re.search(r"(\d+)\s(.+)\s", date_str)
+        if search_result:
+            num = search_result.groups()[0]
+            str_ = search_result.groups()[1]
+            return FreeCodeCampStrategy.handle_expected_date_case(num, str_)
+        elif re.search(r"([an])\s(.+)\s", date_str):
+            search_result = re.search(r"([an])\s(.+)\s", date_str)
+            starting_str = search_result.groups()[0]
+            how_long_str = search_result.groups()[1]
+            return FreeCodeCampStrategy.handle_starting_str_date(
+                starting_str, how_long_str
+            )
+        elif re.search(r"^[Tt].+"):
+            return datetime.now(tz=timezone.utc)
+
+    @staticmethod
+    def handle_starting_str_date(starting_str, how_long_str):
+        if starting_str.endswith("n"):
+            # the only correct possible word: an hour ago
+            return datetime.now(tz=timezone.utc) - timedelta(hours=1)
+        elif starting_str.startswith("a") and how_long_str.startswith("day"):
+            return datetime.now(tz=timezone.utc) - timedelta(days=1)
+        elif starting_str.startswith("a") and how_long_str.startswith("mon"):
+            return datetime.now(tz=timezone.utc) - timedelta(days=30)
+
+    @staticmethod
+    def handle_expected_date_case(num, str_):
+        if str_.startswith("hour"):
+            return datetime.now(tz=timezone.utc) - timedelta(hours=int(num))
+        elif str_.startswith("day"):
+            return datetime.now(tz=timezone.utc) - timedelta(days=int(num))
 
 
 class SyncFusionStrategy(ScrapingStrategy):
     def __init__(self, soup) -> None:
         self.soup = soup
 
-    def handle(self, save_article=None):
+    def handle(self):
         articles = self.soup.find(class_="loop-wrapper").find_all(
             "div", recursive=False
         )
@@ -178,16 +211,24 @@ class SyncFusionStrategy(ScrapingStrategy):
                 pass
             summary = None
 
-            save_article(
-                link=link, title=title, image_url=image_url, summary=summary, date=date
+            return dict(
+                link=link,
+                title=title,
+                image_url=image_url,
+                summary=summary,
+                date=self.to_native_date(date.strip()),
             )
+
+    @staticmethod
+    def to_native_date(date_str: str):
+        return DigitalOceanStrategy.to_native_date(date_str)
 
 
 class GitBlogStrategy(ScrapingStrategy):
     def __init__(self, soup) -> None:
         self.soup = soup
 
-    def handle(self, save_article=None):
+    def handle(self):
         articles = self.soup.find(class_="blog-recent-post-grid").find_all(
             class_="blog-card"
         )
@@ -205,39 +246,14 @@ class GitBlogStrategy(ScrapingStrategy):
             title = re.sub(r"\n", "", title)
             date = re.sub(r"\n", "", date)
 
-            save_article(
-                link=link, title=title, image_url=image_url, summary=summary, date=date
+            return dict(
+                link=link,
+                title=title,
+                image_url=image_url,
+                summary=summary,
+                date=self.to_native_date(date.strip()),
             )
 
-
-blog_urls = [
-    # "https://css-tricks.com",
-    # "https://www.digitalocean.com/community/tutorials",
-    # "https://medium.com/tag/programming",
-    # "https://medium.com/tag/python",
-    # "https://medium.com/tag/go",
-    # "https://www.freecodecamp.org/news",
-    # "https://www.syncfusion.com/blogs",
-    # "https://about.gitlab.com/blog/",
-]
-
-# templates = {
-#     "digitalocean": DigitalOceanStrategy,
-#     "css-tricks": CssTrickStrategy,
-#     "medium": MediumStrategy,
-#     "freecodecamp": FreeCodeCampStrategy,
-#     "syncfusion": SyncFusionStrategy,
-#     "about.gitlab": GitBlogStrategy,
-# }
-
-# for url in blog_urls:
-#     vendor = ProcessRssFeed.vendor_fromurl(url)
-#     response = make_request(url)
-#     if not response:
-#         continue
-#     process_markup = ProcessMarkUp(response)
-#     soup = process_markup.get_bsmarkup()
-#     template = templates[vendor](soup)
-#     print(f"ICON---{process_markup.get_icon()}")
-#     # new_save = partial(vendor_icon=process_markup.get_icon() )
-#     template.handle(save_article=lambda **kwargs: print(kwargs))
+    @staticmethod
+    def to_native_date(date_str: str):
+        return CssTrickStrategy.to_native_date(date_str)

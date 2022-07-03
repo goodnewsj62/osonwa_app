@@ -7,6 +7,7 @@ class Feed(models.Model):
     description = models.TextField()
     link = models.URLField(null=False, blank=False)
     date_published = models.DateTimeField(null=False, blank=False)
+    date_scraped = models.DateTimeField(auto_now_add=True)
     image_url = models.URLField(null=True, blank=True)
     logo_url = models.URLField(null=True, blank=True)
     website = models.CharField(null=True, blank=False)

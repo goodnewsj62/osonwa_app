@@ -2,7 +2,7 @@ from osonwa.tasks import (
     fetch_rss_entries,
 )  # this is imported here because of gevent monkey patch
 
-from celery import shared_task
+from celery import chain, group, shared_task
 
 from news.models import NewsFeed
 from osonwa.helpers import (
@@ -13,12 +13,21 @@ from osonwa.helpers import (
     logo_from_web_url,
     vendor_fromurl,
 )
+from osonwa.constants import NEWS_RSS_FEED_URLS
+
+
+def fetch_news_rss():
+    group_ = group(
+        fetch_rss_entries.s(url, "tech news").link(process_entries_and_save.s())
+        for url in NEWS_RSS_FEED_URLS
+    )
+
+    group_()
 
 
 @shared_task
-def process_rss_feed_and_save(fetched_entries: dict):
+def process_entries_and_save(fetched_entries: dict):
     entries = fetched_entries.get("entries")
-
     for entry in entries:
         entry_helper_object = FeedEntryHelper(entry)
         parser = ProcessMarkUp

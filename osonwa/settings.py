@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -47,6 +48,7 @@ INSTALLED_APPS = [
     "account.apps.AccountConfig",
     "blog.apps.BlogConfig",
     "news.apps.NewsConfig",
+    "articles_feed.apps.ArticlesFeedConfig",
 ]
 
 MIDDLEWARE = [
@@ -86,7 +88,11 @@ WSGI_APPLICATION = "osonwa.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": str(BASE_DIR / "db.sqlite3"),
+        "NAME": os.getenv("DATABASE_NAME"),
+        "USERNAME": os.getenv("DATABASE_USER"),
+        "PASSWORD": os.getenv("DATABASE_PASSWORD"),
+        "PORT": 5432,
+        "HOST": "postgresdb",
     }
 }
 
@@ -146,3 +152,4 @@ CELERY_BROKER_URL = "redis://localhost:6379"
 CELERY_RESULT_BACKEND = "redis://localhost:6379"
 CELERYBEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 CELERY_ACKS_LATE = True
+CELERY_CREATE_MISSING_QUEUES = True

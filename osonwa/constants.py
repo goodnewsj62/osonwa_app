@@ -98,3 +98,17 @@ WEB_DEV_RSS_FEED_URLS = [
     r"https://blog.logrocket.com/feed/",
     r"https://cssauthor.com/feed/",
 ]
+
+
+SCRAPE_URLS = [
+    r"https://medium.com/tag/java",
+    r"https://css-tricks.com",
+    r"https://medium.com/tag/programming",
+    r"https://www.digitalocean.com/community/tutorials",
+    r"https://www.freecodecamp.org/news",
+    r"https://medium.com/tag/go",
+    r"https://www.syncfusion.com/blogs",
+    r"https://medium.com/tag/javascript",
+    r"https://about.gitlab.com/blog/",
+    r"https://medium.com/tag/python",
+]

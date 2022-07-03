@@ -41,6 +41,7 @@ def logo_from_web_url(url: str):
     def logo_url(parser: MarkupParser):
         return parser(
             requests.request(
+                method="get",
                 url=parsed_url.hostname,
                 headers={
                     "User-Agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.82 Mobile Safari/537.36"
