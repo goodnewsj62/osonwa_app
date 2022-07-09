@@ -59,12 +59,25 @@ class UserFeedGroup(models.Model):
 
 
 class UserReaction(models.Model):
-    user = models.ManyToManyField(
+    REACTION_CHOICES = [
+        ("facesunglass", "face with sunglass"),  # "\U0001F60E"
+        ("rocket", "rocket"),  # "\U0001F680"
+        ("fire", "fire"),  # "\U0001F525"
+        ("redheart", "red heart"),  # "\u2764\uFE0F"
+        ("hundred", "hundred points"),  # "\U0001F4AF"
+        ("okhand", "ok hand"),  # "\U0001F44C"
+        ("wine", "wine"),  # "\U0001F377"
+        ("explodinghead", "exploding head"),  # "\U0001F92F"
+    ]
+    user = models.ForeignKey(
         "account.User",
+        on_delete=models.CASCADE,
         related_name="%(app_label)s_%(class)s",
         related_query_name="%(app_label)s_%(class)s",
     )
-    reaction = models.JSONField(default=dict)
+    reaction = models.CharField(
+        max_length=100, null=False, blank=False, choices=REACTION_CHOICES
+    )
 
     class Meta:
         abstract = True

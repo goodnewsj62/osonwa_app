@@ -118,7 +118,9 @@ class Tags(models.Model):
 
 
 class PostUserReactions(UserReaction):
-    post = models.OneToOneField(
+    post = models.ForeignKey(
         "blog.Post",
         on_delete=models.CASCADE,
+        related_name="reactions",
+        related_query_name="reactions",
     )

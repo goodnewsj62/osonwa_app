@@ -59,10 +59,10 @@ def test_post_user_reactions(db, post_reaction_a):
     assert_true(PostUserReactions.objects.filter(pk=post_reaction_a.id).exists())
 
 
-def test_post_user_set_reactions(db, post_reaction_a):
-    post_reaction_a.reactions = {"unicode": "a", "unicode-x": "b"}
+def test_post_user_set_reaction(db, post_reaction_a):
+    post_reaction_a.reaction = "smiley"
     post_reaction_a.save()
-    assert_equal(post_reaction_a.reactions.get("unicode"), 2)
+    assert_equal(post_reaction_a.reaction, "smiley")
 
 
 def test_created_tag(db, tag_a):

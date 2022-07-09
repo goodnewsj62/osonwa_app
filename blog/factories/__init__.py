@@ -50,7 +50,7 @@ class PostUserReactionFactory(factory.django.DjangoModelFactory):
 
     post = factory.SubFactory(PostFactory)
     user = factory.SubFactory("account.factories.UserFactory")
-    reactions = {"unicode": "simley", "unicode2": "shit"}
+    reaction = "redheart"
 
 
 class TagFactory(factory.django.DjangoModelFactory):
