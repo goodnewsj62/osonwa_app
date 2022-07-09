@@ -1,7 +1,7 @@
 from django.db import models
 from django.conf import settings
 
-from osonwa.general_models import Feed, UserFeedGroup
+from osonwa.general_models import Feed, UserFeedGroup, UserReaction
 
 # Create your models here.
 
@@ -10,6 +10,10 @@ class ArticlesFeed(Feed):
     class Meta:
         verbose_name_plural = "articles feed"
         ordering = "-date_published"
+
+
+class NewsReactions(UserReaction):
+    post = models.ForeignKey("articles_feed.ArticleFeed", on_delete=models.CASCADE)
 
 
 class ContentArticleFeedGroup(UserFeedGroup):

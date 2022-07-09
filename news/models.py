@@ -14,7 +14,7 @@ class NewsFeed(Feed):
 
 
 class NewsReactions(UserReaction):
-    post = models.OneToOneField("news.NewsFeed", on_delete=models.CASCADE)
+    post = models.ForeignKey("news.NewsFeed", on_delete=models.CASCADE)
 
 
 class CollaborativeNewsFeedGroup(UserFeedGroup):
