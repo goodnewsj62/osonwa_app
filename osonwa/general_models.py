@@ -2,7 +2,7 @@ from django.db import models
 
 
 class Feed(models.Model):
-    gid = models.CharField(max_length=1000, unique=True, blank=False)
+    gid = models.CharField(max_length=1000, null=False, unique=True, blank=False)
     title = models.CharField(max_length=300, blank=False, null=False)
     description = models.TextField()
     link = models.URLField(null=False, blank=False)

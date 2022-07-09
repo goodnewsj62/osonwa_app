@@ -1,6 +1,8 @@
 import factory
 from django.conf import settings
 
+from factories import ReactionFactory
+
 __all__ = [
     "BundleFactory",
     "PostFactory",
@@ -44,13 +46,11 @@ class PostImagesFactory(factory.django.DjangoModelFactory):
     )
 
 
-class PostUserReactionFactory(factory.django.DjangoModelFactory):
+class PostUserReactionFactory(ReactionFactory):
     class Meta:
         model = "blog.PostUserReactions"
 
     post = factory.SubFactory(PostFactory)
-    user = factory.SubFactory("account.factories.UserFactory")
-    reaction = "redheart"
 
 
 class TagFactory(factory.django.DjangoModelFactory):

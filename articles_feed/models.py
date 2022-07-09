@@ -6,13 +6,13 @@ from osonwa.general_models import Feed, UserFeedGroup, UserReaction
 # Create your models here.
 
 
-class ArticlesFeed(Feed):
+class ArticleFeed(Feed):
     class Meta:
         verbose_name_plural = "articles feed"
         ordering = "-date_published"
 
 
-class NewsReactions(UserReaction):
+class ArticleReaction(UserReaction):
     post = models.ForeignKey("articles_feed.ArticleFeed", on_delete=models.CASCADE)
 
 
@@ -28,12 +28,12 @@ class ContentArticleFeedGroup(UserFeedGroup):
         pass
 
 
-class ContentBasedRecommendedArticles(object):
+class ContentBasedRecommendedArticle(models.Model):
     group = models.OneToOneField(
         "articles_feed.ContentArticleFeedGroup", on_delete=models.CASCADE
     )
     feeds = models.ManyToManyField(
-        "articles_feed.ArticlesFeed",
+        "articles_feed.ArticleFeed",
         related_name="content_recommendations",
         related_query_name="content_recommendations",
     )
@@ -50,12 +50,12 @@ class CollaborativeArticleFeedGroup(UserFeedGroup):
     )
 
 
-class CollabBasedRecommendedArticles(object):
+class CollabBasedRecommendedArticle(models.Model):
     group = models.OneToOneField(
         "articles_feed.CollaborativeArticleFeedGroup", on_delete=models.CASCADE
     )
     feeds = models.ManyToManyField(
-        "articles_feed.ArticlesFeed",
+        "articles_feed.ArticleFeed",
         related_name="collaborative_recommendations",
         related_query_name="collaborative_recommendations",
     )

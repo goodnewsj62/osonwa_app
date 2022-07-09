@@ -13,7 +13,7 @@ class NewsFeed(Feed):
         ordering = "-date_publihed"
 
 
-class NewsReactions(UserReaction):
+class NewsReaction(UserReaction):
     post = models.ForeignKey("news.NewsFeed", on_delete=models.CASCADE)
 
 
