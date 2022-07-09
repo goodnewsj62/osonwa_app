@@ -56,6 +56,7 @@ class ContentNewsFeedGroups(UserFeedGroup):
 class ContentBasedRecommendedNewsFeed(models.Model):
     group = models.OneToOneField("news.ContentNewsFeedGroups", on_delete=models.CASCADE)
     feeds = models.ManyToManyField(
+        "news.NewsFeed",
         related_name="content_recommendations",
         related_query_name="content_recommendations",
     )

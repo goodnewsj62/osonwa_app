@@ -10,7 +10,7 @@ class Feed(models.Model):
     date_scraped = models.DateTimeField(auto_now_add=True)
     image_url = models.URLField(null=True, blank=True)
     logo_url = models.URLField(null=True, blank=True)
-    website = models.CharField(null=True, blank=False)
+    website = models.CharField(max_length=300, null=True, blank=False)
     scope = models.CharField(max_length=150, null=True, blank=True)
     subscope = models.JSONField(default=dict())
 
@@ -24,7 +24,7 @@ class Feed(models.Model):
     def subscopes(self):
         return self.subscope
 
-    @property.setter
+    @subscopes.setter
     def subscopes(self, dict_scope):
         subscopes = self.subscope
         subscopes.update(dict_scope)
@@ -48,7 +48,7 @@ class UserFeedGroup(models.Model):
     def topics(self):
         return self.topics_rank
 
-    @property.setter
+    @topics.setter
     def topics(self, new_topics_dict: dict):
         existing_topics = self.topics_rank
 
@@ -61,7 +61,6 @@ class UserFeedGroup(models.Model):
 class UserReaction(models.Model):
     user = models.ManyToManyField(
         "account.User",
-        on_delete=models.CASCADE,
         related_name="%(app_label)s_%(class)s",
         related_query_name="%(app_label)s_%(class)s",
     )

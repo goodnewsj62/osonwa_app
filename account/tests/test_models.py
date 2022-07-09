@@ -6,7 +6,7 @@ from django.db import IntegrityError
 from django.core.exceptions import ValidationError
 
 from account.models import SocialAccount, User
-from osonwa.helpers import assert_equals, assert_false, assert_true
+from osonwa.assert_helpers import assert_equal, assert_false, assert_true
 
 
 def generate_random_char(length=10):
@@ -14,7 +14,7 @@ def generate_random_char(length=10):
 
 
 def test_user_creation(test_user_one):
-    assert_equals(test_user_one.username, "testuser")
+    assert_equal(test_user_one.username, "testuser")
 
 
 def test_duplicate_username(test_user_two, create_user_object):
@@ -75,12 +75,12 @@ def test_null_last_name(create_user_object):
 
 
 def test_auto_profile_creation(test_user_one):
-    assert_true(test_user_one.profile.user.username)
+    assert_true(test_user_one.profile.user.username == test_user_one.username)
 
 
 def test_notification(create_notification, test_user_one, test_user_two):
-    assert_equals(create_notification.owner, test_user_one)
-    assert_equals(create_notification.action_by, test_user_two)
+    assert_equal(create_notification.owner, test_user_one)
+    assert_equal(create_notification.action_by, test_user_two)
 
 
 def test_social_accounts(db, test_user_one):
@@ -100,7 +100,7 @@ def test_social_accounts(db, test_user_one):
         ),
     )
 
-    assert_equals(social_account.user, test_user_one)
+    assert_equal(social_account.user, test_user_one)
 
 
 def test_invalid_provider(db, test_user_one):
