@@ -16,6 +16,12 @@ services:
       - ./mypostgresql.config:/usr/local/share/postgresql/postgresql.conf
       - ./init.sh:/docker-entrypoint-initdb.d/init-user-db.sh
       - pgdata:/var/lib/postgresql/data
+  redisdb:
+    image: redis:lastest
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis
+    command:
+      - redis-server /usr/local/etc/redis/redis.conf
   app:
     image: osonwa
     build: 
