@@ -36,18 +36,23 @@ services:
       - redisdb
     env_file:
       - .env
-    command: python manage.py runserver 0.0.0.0:8000
+    command: >
+      sh -c "python manage.py migrate && python manage.py wait_for_db && python manage.py runserver 0.0.0.0:8000"
     ports:
       - 8080:8000
 
   celery:
+    restart: always
     build: 
       context: .
       dockerfile: ./dockerfiles/compose.dockerfile
+    command: celery -A osonwa multi start  -l info -c:1 100 -c:2 10 -Q:1 greenqueue -Q:2 default
     depends_on:
       - postgresdb
       - redisdb
       - app
+    volumes:
+      - ./:/app/www
     env_file:
       - .env
     container_name: celery
