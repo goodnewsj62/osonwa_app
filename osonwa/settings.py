@@ -148,8 +148,8 @@ REST_FRAMEWORK = {}
 
 
 # CELERY
-CELERY_BROKER_URL = "redis://localhost:6379"
-CELERY_RESULT_BACKEND = "redis://localhost:6379"
+CELERY_BROKER_URL = "redis://redisdb:6379"
+CELERY_RESULT_BACKEND = "redis://redisdb:6379"
 CELERYBEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 CELERY_ACKS_LATE = True
 CELERY_CREATE_MISSING_QUEUES = True

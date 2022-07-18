@@ -33,11 +33,24 @@ services:
       - static_volume:/app/static
     depends_on:
       - postgresdb
+      - redisdb
     env_file:
       - .env
     command: python manage.py runserver 0.0.0.0:8000
     ports:
       - 8080:8000
+
+  celery:
+    build: 
+      context: .
+      dockerfile: ./dockerfiles/compose.dockerfile
+    depends_on:
+      - postgresdb
+      - redisdb
+      - app
+    env_file:
+      - .env
+    container_name: celery
 volumes:
   pgdata:
   access_log:
