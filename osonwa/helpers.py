@@ -1,5 +1,6 @@
 __author__ = "goodnews osonwa john"
 
+import hashlib
 import uuid
 import base64
 import re
@@ -200,3 +201,52 @@ def inmemory_wrapper(image, default_path: str):
 
 def dictfrom_django_choice_field(dj_choices):
     return {choice[0]: choice[1] for choice in dj_choices}
+
+
+def md5_hex_digest(text: str):
+    if not text:
+        text = " "
+
+    md5_hash = hashlib.md5(text.encode())
+    return str(md5_hash.hexdigest())
+
+
+def process_entries(fetched_entries, to_db):
+    print("-------------------++++++++++++++++++")
+    entries = fetched_entries.get("entries")
+    for entry in entries:
+        entry_helper_object = FeedEntryHelper(entry)
+        parser = ProcessMarkUp
+
+        image_url = clean_image_url(entry_helper_object, parser)
+        url = fetched_entries.get("url")
+        id_ = entry_helper_object.get_unique_id()
+        id_ = id_ if id_ else id_fromurl(url)
+
+        print("-------------------++++++++++++++++++:  =====", image_url)
+        # creating a digest to know same articles
+        str_unique_hex = md5_hex_digest(entry_helper_object.get_title())
+
+        to_db(
+            hash_id=str_unique_hex,
+            gid=id_,
+            title=entry_helper_object.get_title(),
+            description=parser(entry_helper_object.get_description()).extract_text(),
+            link=entry_helper_object.get_entry_url(),
+            date_published=entry_helper_object.get_date_published(),
+            image_url=image_url,
+            website=vendor_fromurl(url),
+            logo_url=logo_from_web_url(url)(parser),
+            scope=fetched_entries.get("scope"),
+        )
+
+
+def save_feed(dbmodel):
+    def to_db(**kwargs):
+        hash_id_exists = dbmodel.objects.filter(hash_id=kwargs.get("hash_id")).exists()
+        gid_exsits = dbmodel.objects.filter(gid=kwargs.get("gid")).exists()
+
+        if not (gid_exsits or hash_id_exists):
+            dbmodel.objects.create(**kwargs)
+
+    return to_db
