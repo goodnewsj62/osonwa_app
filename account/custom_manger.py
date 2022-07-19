@@ -9,13 +9,15 @@ class UserManager(BaseUserManager):
         if not email:
             raise ValueError("Users must have an email address")
 
-        user_instance = self.model.create(
-            email, username, first_name, last_name, **others
+        user_instance = self.model.objects.create(
+            email=email,
+            username=username,
+            first_name=first_name,
+            last_name=last_name,
+            **others
         )
-
         user_instance.set_password(password)
         user_instance.save()
-
         return user_instance
 
     def create_superuser(

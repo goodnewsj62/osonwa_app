@@ -12,7 +12,7 @@ class Feed(models.Model):
     logo_url = models.URLField(null=True, blank=True)
     website = models.CharField(max_length=300, null=True, blank=False)
     scope = models.CharField(max_length=150, null=True, blank=True)
-    subscope = models.JSONField(default=dict())
+    subscope = models.JSONField(default=dict)
 
     class Meta:
         abstract = True
@@ -33,7 +33,7 @@ class Feed(models.Model):
 
 class UserFeedGroup(models.Model):
     name = models.CharField(max_length=300, null=True, blank=True, unique=True)
-    topics_rank = models.JSONField(default=dict())
+    topics_rank = models.JSONField(default=dict)
 
     class Meta:
         abstract = True

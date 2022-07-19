@@ -10,7 +10,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField("email address", max_length=300, unique=True)
     username = models.CharField(max_length=300, unique=True, blank=False, null=False)
     first_name = models.CharField("first name", max_length=300, null=False, blank=True)
-    last_name = models.CharField("last name", max_length=300, null=False, blank=True)
+    last_name = models.CharField(
+        "last name", max_length=300, null=False, blank=True, default=""
+    )
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
@@ -19,7 +21,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     USERNAME_FIELD = "email"
     EMAIL_FIELD = "email"
-    REQUIRED_FIELDS = ["username"]
+    REQUIRED_FIELDS = ["username", "first_name", "last_name"]
 
     class Meta:
         pass

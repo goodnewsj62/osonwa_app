@@ -10,7 +10,9 @@ class NewsFeed(Feed):
     class Meta:
         verbose_name = "news feed"
         verbose_name_plural = "news feeds"
-        ordering = "-date_publihed"
+        ordering = [
+            "-date_published",
+        ]
 
 
 class NewsReaction(UserReaction):

@@ -4,7 +4,7 @@ from osonwa.tasks import fetch_rss_entries, make_request
 from typing import Sequence, Union
 import bs4
 from celery import group, shared_task
-from articles_feed.models import ArticlesFeed
+from articles_feed.models import ArticleFeed
 
 from articles_feed.scrappers_strategies import (
     CssTrickStrategy,
@@ -50,7 +50,7 @@ def extract_info(list_of_tuples: Sequence[Union[str, str]]):
         strategy = scrape_strategies[vendor](soup)
         result_dict = strategy.handle(save_article=lambda **kwargs: print(kwargs))
 
-        ArticlesFeed.objects.create(
+        ArticleFeed.objects.create(
             guid=generate_b64_uuid_string(),
             title=result_dict.get("title"),
             description=process_markup.__class__(
@@ -85,7 +85,7 @@ def process_articles_entries_and_save(fetched_entries: dict):
         id_ = entry_helper_object.get_unique_id()
         id_ = id_ if id_ else id_fromurl(url)
 
-        ArticlesFeed.objects.create(
+        ArticleFeed.objects.create(
             gid=id_,
             title=entry_helper_object.get_title(),
             description=parser(entry_helper_object.get_description()).extract_text(),

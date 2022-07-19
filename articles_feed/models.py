@@ -9,7 +9,9 @@ from osonwa.general_models import Feed, UserFeedGroup, UserReaction
 class ArticleFeed(Feed):
     class Meta:
         verbose_name_plural = "articles feed"
-        ordering = "-date_published"
+        ordering = [
+            "-date_published",
+        ]
 
 
 class ArticleReaction(UserReaction):

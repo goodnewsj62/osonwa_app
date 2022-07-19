@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 
 import os
 from pathlib import Path
+from dotenv import find_dotenv, load_dotenv
+
+load_dotenv(find_dotenv())
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,14 +24,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-#p_pubdx5+tu=0rjw0s5oj6g+=*_iw0xwem_+2i+i722j&tvfs"
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 AUTH_USER_MODEL = "account.User"
-
-ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -49,6 +50,7 @@ INSTALLED_APPS = [
     "blog.apps.BlogConfig",
     "news.apps.NewsConfig",
     "articles_feed.apps.ArticlesFeedConfig",
+    "core.apps.CoreConfig",
 ]
 
 MIDDLEWARE = [
@@ -89,7 +91,7 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": os.getenv("DATABASE_NAME"),
-        "USERNAME": os.getenv("DATABASE_USER"),
+        "USER": os.getenv("DATABASE_USER"),
         "PASSWORD": os.getenv("DATABASE_PASSWORD"),
         "PORT": 5432,
         "HOST": "postgresdb",
@@ -97,7 +99,7 @@ DATABASES = {
 }
 
 
-ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1"]
+ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1", "osonwa.com", "osonwa"]
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators

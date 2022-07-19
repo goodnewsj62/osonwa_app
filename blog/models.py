@@ -106,7 +106,7 @@ class PostImages(models.Model):
 class Tags(models.Model):
     tag_name = models.CharField("tags", max_length=300, unique=True, null=False)
     posts = models.ManyToManyField(
-        "blog.Post", null=True, related_name="tags", related_query_name="tags"
+        "blog.Post", related_name="tags", related_query_name="tags"
     )
 
     class Meta:

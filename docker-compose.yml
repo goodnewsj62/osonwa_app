@@ -17,11 +17,11 @@ services:
       - ./init.sh:/docker-entrypoint-initdb.d/init-user-db.sh
       - pgdata:/var/lib/postgresql/data
   redisdb:
-    image: redis:lastest
-    volumes:
-      - ./redis.conf:/usr/local/etc/redis
-    command:
-      - redis-server /usr/local/etc/redis/redis.conf
+    image: redis
+    # volumes:
+    #   - ./redis.conf:/usr/local/etc/redis
+    # command:
+    #   - redis-server /usr/local/etc/redis/redis.conf
   app:
     image: osonwa
     build: 
@@ -37,16 +37,35 @@ services:
     env_file:
       - .env
     command: >
-      sh -c "python manage.py migrate && python manage.py wait_for_db && python manage.py runserver 0.0.0.0:8000"
+      sh -c "python manage.py runserver 0.0.0.0:8000"
     ports:
       - 8080:8000
 
-  celery:
+  IOBoundCelery:
     restart: always
     build: 
       context: .
       dockerfile: ./dockerfiles/compose.dockerfile
-    command: celery -A osonwa multi start  -l info -c:1 100 -c:2 10 -Q:1 greenqueue -Q:2 default
+    command: >
+      sh -c "celery -A osonwa worker -l info -P gevent -Q greenqueue -c 100"
+    depends_on:
+      - postgresdb
+      - redisdb
+      - app
+      - CPUBoundCelery
+    volumes:
+      - ./:/app/www
+    env_file:
+      - .env
+    container_name: celery
+
+  CPUBoundCelery:
+    restart: always
+    build: 
+      context: .
+      dockerfile: ./dockerfiles/compose.dockerfile
+    command: >
+      sh -c "celery -A osonwa worker -l info -P prefork -c 10  -Q default"
     depends_on:
       - postgresdb
       - redisdb
@@ -56,6 +75,7 @@ services:
     env_file:
       - .env
     container_name: celery
+
 volumes:
   pgdata:
   access_log:
