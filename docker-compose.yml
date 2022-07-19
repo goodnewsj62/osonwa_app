@@ -41,7 +41,7 @@ services:
     ports:
       - 8080:8000
 
-  IOBoundCelery:
+  io_bound_celery:
     restart: always
     build: 
       context: .
@@ -52,14 +52,14 @@ services:
       - postgresdb
       - redisdb
       - app
-      - CPUBoundCelery
+      - cpu_bound_celery
     volumes:
       - ./:/app/www
     env_file:
       - .env
     container_name: celery
 
-  CPUBoundCelery:
+  cpu_bound_celery:
     restart: always
     build: 
       context: .
