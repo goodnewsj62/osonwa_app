@@ -13,3 +13,7 @@ app.autodiscover_tasks()
 @app.task(bind=True)
 def debug_task(self):
     print(f"Request: {self.request!r}")
+
+
+# from news.tasks import fetch_news_rss
+# from news.models import NewsFeed

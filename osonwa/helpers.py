@@ -43,7 +43,7 @@ def logo_from_web_url(url: str):
         return parser(
             requests.request(
                 method="get",
-                url=parsed_url.hostname,
+                url=parsed_url.scheme + "://" + parsed_url.hostname,
                 headers={
                     "User-Agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.82 Mobile Safari/537.36"
                 },
@@ -154,11 +154,13 @@ def clean_image_url(entry_helper_object, parser):
     image_url_content = entry_helper_object.get_image_url()
 
     if image_url_content and image_url_content.startswith("http"):
-        image_url = image_url
+        return image_url_content
     elif image_url_content:
-        image_url = parser(image_url_content).extract_image()
+        return parser(image_url_content).extract_image()
+    elif entry_helper_object.get_description():
+        return parser(entry_helper_object.get_description()).extract_image()
     else:
-        image_url = parser(entry_helper_object.get_description()).extract_image()
+        return None
 
 
 def generate_b64_uuid_string():
@@ -212,8 +214,11 @@ def md5_hex_digest(text: str):
 
 
 def process_entries(fetched_entries, to_db):
-    print("-------------------++++++++++++++++++")
     entries = fetched_entries.get("entries")
+    # if not entries:
+    #     print("hit am oh")
+    #     return
+
     for entry in entries:
         entry_helper_object = FeedEntryHelper(entry)
         parser = ProcessMarkUp
@@ -223,7 +228,6 @@ def process_entries(fetched_entries, to_db):
         id_ = entry_helper_object.get_unique_id()
         id_ = id_ if id_ else id_fromurl(url)
 
-        print("-------------------++++++++++++++++++:  =====", image_url)
         # creating a digest to know same articles
         str_unique_hex = md5_hex_digest(entry_helper_object.get_title())
 

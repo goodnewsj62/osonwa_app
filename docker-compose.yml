@@ -17,11 +17,9 @@ services:
       - ./init.sh:/docker-entrypoint-initdb.d/init-user-db.sh
       - pgdata:/var/lib/postgresql/data
   redisdb:
-    image: redis
-    # volumes:
-    #   - ./redis.conf:/usr/local/etc/redis
-    # command:
-    #   - redis-server /usr/local/etc/redis/redis.conf
+    image: redis:own        
+    command:
+      - redis-server /usr/local/etc/redis.conf
   app:
     image: osonwa
     build: 
@@ -57,7 +55,7 @@ services:
       - ./:/app/www
     env_file:
       - .env
-    container_name: celery
+    container_name: iocelery
 
   cpu_bound_celery:
     restart: always
@@ -65,7 +63,7 @@ services:
       context: .
       dockerfile: ./dockerfiles/compose.dockerfile
     command: >
-      sh -c "celery -A osonwa worker -l info -P prefork -c 10  -Q default"
+      sh -c "celery -A osonwa worker -l info -P prefork -Q cpu"
     depends_on:
       - postgresdb
       - redisdb
@@ -74,7 +72,8 @@ services:
       - ./:/app/www
     env_file:
       - .env
-    container_name: celery
+    container_name: cpucelery
+
 
 volumes:
   pgdata:

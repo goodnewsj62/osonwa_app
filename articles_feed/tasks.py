@@ -28,7 +28,7 @@ def scrape_websites():
     chord()
 
 
-@shared_task
+@shared_task(queue="cpu")
 def extract_info(list_of_tuples: Sequence[Union[str, str]]):
     scrape_strategies = {
         "digitalocean": DigitalOceanStrategy,
@@ -46,9 +46,11 @@ def extract_info(list_of_tuples: Sequence[Union[str, str]]):
         site_icon = process_markup.get_icon()
         strategy = scrape_strategies[vendor](soup)
         result_dict = strategy.handle(save_article=lambda **kwargs: print(kwargs))
+        id_ = generate_b64_uuid_string()
 
         ArticleFeed.objects.create(
-            guid=generate_b64_uuid_string(),
+            hash_id=id_,
+            guid=id_,
             title=result_dict.get("title"),
             description=process_markup.__class__(
                 result_dict.get("summary")
@@ -70,6 +72,6 @@ def fetch_rss(scope, urls):
     group_()
 
 
-@shared_task
+@shared_task(queue="cpu")
 def process_articles_entries_and_save(fetched_entries: dict):
     process_entries(fetched_entries, save_feed(ArticleFeed))
