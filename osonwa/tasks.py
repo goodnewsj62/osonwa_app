@@ -1,12 +1,16 @@
+import json
 from celery import shared_task
+from news.models import RawFeed
 from osonwa.helpers import FeedParserWrapper
 import requests
 
 
-@shared_task(queue="cpu")
+@shared_task(queue="greenqueue")
 def fetch_rss_entries(url, scope=None):
     entries = FeedParserWrapper(url).fetch_data_entries()
-    return {"entries": entries, "scope": scope, "url": url}
+    print(f"****{len(entries)}")
+    instance = RawFeed.objects.create(string_blob=json.dumps(entries))
+    return {"raw_id": instance.id, "url": url, "scope": scope}
 
 
 @shared_task(queue="greenqueue")

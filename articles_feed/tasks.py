@@ -1,10 +1,9 @@
-from osonwa.tasks import fetch_rss_entries, make_request
-
-
+import json
 from typing import Sequence, Union
-from celery import group, shared_task
-from articles_feed.models import ArticleFeed
 
+from celery import group, shared_task
+
+from articles_feed.models import ArticleFeed
 from articles_feed.scrappers_strategies import (
     CssTrickStrategy,
     DigitalOceanStrategy,
@@ -20,7 +19,17 @@ from osonwa.helpers import (
     save_feed,
     vendor_fromurl,
 )
-from osonwa.constants import SCRAPE_URLS
+from news.models import RawFeed
+from osonwa.tasks import fetch_rss_entries, make_request
+from osonwa.constants import (
+    SCRAPE_URLS,
+    agile_urls_tuple,
+    cybersecurity_urls_namedtuple,
+    vr_ar_urls_namedtuple,
+    webdev_urls_namedtuple,
+    gamedev_urls_namedtuple,
+    printing3d_urls_namedtuple,
+)
 
 
 def scrape_websites():
@@ -64,14 +73,33 @@ def extract_info(list_of_tuples: Sequence[Union[str, str]]):
         )
 
 
+def fetch_from_urls():
+    scoped_tuples = [
+        agile_urls_tuple,
+        cybersecurity_urls_namedtuple,
+        vr_ar_urls_namedtuple,
+        webdev_urls_namedtuple,
+        gamedev_urls_namedtuple,
+        printing3d_urls_namedtuple,
+    ]
+
+    for tuple_ in scoped_tuples:
+        fetch_rss(tuple_.scope, tuple_.urls)
+
+
 def fetch_rss(scope, urls):
     group_ = group(
-        fetch_rss_entries.s(url, scope).link(process_articles_entries_and_save.s())
+        (fetch_rss_entries.s(url, scope) | process_articles_entries_and_save.s())
         for url in urls
     )
     group_()
 
 
 @shared_task(queue="cpu")
-def process_articles_entries_and_save(fetched_entries: dict):
-    process_entries(fetched_entries, save_feed(ArticleFeed))
+def process_articles_entries_and_save(data: dict):
+    # TODO: bad code repitition of those in news
+    rawfeed_dump_instance = RawFeed.objects.get(id=data.pop("raw_id"))
+    entries = json.loads(rawfeed_dump_instance.string_blob)
+    data.update({"entries": entries})
+    process_entries(data, save_feed(ArticleFeed))
+    rawfeed_dump_instance.delete()

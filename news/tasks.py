@@ -1,25 +1,28 @@
+import json
 from osonwa.tasks import (
     fetch_rss_entries,
 )  # this is imported here because of gevent monkey patch
 
 from celery import chain, chord, group, shared_task
 
-from news.models import NewsFeed
+from news.models import NewsFeed, RawFeed
 from osonwa.helpers import process_entries, save_feed
-
 from osonwa.constants import NEWS_RSS_FEED_URLS
 
 
 def fetch_news_rss():
-    chord_ = chord(
-        (fetch_rss_entries.s(url, "tech news") for url in NEWS_RSS_FEED_URLS),
-        process_entries_and_save.s(),
+    group_ = group(
+        (fetch_rss_entries.s(url, "tech news") | process_entries_and_save.s())
+        for url in NEWS_RSS_FEED_URLS
     )
 
-    chord_()
+    group_()
 
 
-@shared_task
-def process_entries_and_save(all_entries: dict):
-    for fetched_entries in all_entries:
-        process_entries(fetched_entries, save_feed(NewsFeed))
+@shared_task(queue="cpu")
+def process_entries_and_save(data: dict):
+    rawfeed_dump_instance = RawFeed.objects.get(id=data.pop("raw_id"))
+    entries = json.loads(rawfeed_dump_instance.string_blob)
+    data.update({"entries": entries})
+    process_entries(data, save_feed(NewsFeed))
+    rawfeed_dump_instance.delete()

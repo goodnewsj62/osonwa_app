@@ -17,9 +17,9 @@ services:
       - ./init.sh:/docker-entrypoint-initdb.d/init-user-db.sh
       - pgdata:/var/lib/postgresql/data
   redisdb:
-    image: redis:own        
-    command:
-      - redis-server /usr/local/etc/redis.conf
+    image: redis:own     
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
   app:
     image: osonwa
     build: 
@@ -38,6 +38,7 @@ services:
       sh -c "python manage.py runserver 0.0.0.0:8000"
     ports:
       - 8080:8000
+    
 
   io_bound_celery:
     restart: always
@@ -45,7 +46,7 @@ services:
       context: .
       dockerfile: ./dockerfiles/compose.dockerfile
     command: >
-      sh -c "celery -A osonwa worker -l info -P gevent -Q greenqueue -c 100"
+      sh -c "celery --quiet -A osonwa worker -l info -P gevent -Q greenqueue -c 100"
     depends_on:
       - postgresdb
       - redisdb

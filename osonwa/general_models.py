@@ -1,18 +1,27 @@
+import json
+from attr import s
 from django.db import models
+
+
+class DumpDB(models.Model):
+    string_blob = models.TextField(null=True)
+
+    class Meta:
+        abstract = True
 
 
 class Feed(models.Model):
     hash_id = models.TextField(unique=True, null=True, blank=False)
     gid = models.CharField(max_length=1000, null=False, unique=True, blank=False)
-    title = models.CharField(max_length=300, blank=False, null=False)
+    title = models.CharField(max_length=500, blank=False, null=False)
     description = models.TextField()
     link = models.URLField(null=False, blank=False)
     date_published = models.DateTimeField(null=False, blank=False)
     date_scraped = models.DateTimeField(auto_now_add=True)
     image_url = models.URLField(null=True, blank=True)
     logo_url = models.URLField(null=True, blank=True)
-    website = models.CharField(max_length=300, null=True, blank=False)
-    scope = models.CharField(max_length=150, null=True, blank=True)
+    website = models.CharField(max_length=500, null=True, blank=False)
+    scope = models.CharField(max_length=200, null=True, blank=True)
     subscope = models.JSONField(default=dict)
 
     class Meta:

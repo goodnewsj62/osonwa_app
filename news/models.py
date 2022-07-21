@@ -1,7 +1,7 @@
 from django.db import models
 from django.conf import settings
 
-from osonwa.general_models import Feed, UserFeedGroup, UserReaction
+from osonwa.general_models import DumpDB, Feed, UserFeedGroup, UserReaction
 
 # Create your models here.
 
@@ -65,3 +65,7 @@ class ContentBasedRecommendedNewsFeed(models.Model):
 
     class Meta:
         pass
+
+
+class RawFeed(DumpDB):
+    pass

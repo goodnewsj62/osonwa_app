@@ -7,12 +7,10 @@ import re
 from functools import lru_cache
 from typing import Protocol
 from urllib.parse import urlsplit
+from datetime import datetime, timezone as tz
 
 
 import feedparser
-from datetime import datetime
-from time import struct_time, mktime
-
 import bs4
 from django.core.files.uploadedfile import InMemoryUploadedFile
 
@@ -37,6 +35,9 @@ class MarkupParser(Protocol):
 def logo_from_web_url(url: str):
     # caching make sense here that's the reason for the closure
     parsed_url = urlsplit(url)
+    print(
+        parsed_url,
+    )
     import requests
 
     def logo_url(parser: MarkupParser):
@@ -47,7 +48,7 @@ def logo_from_web_url(url: str):
                 headers={
                     "User-Agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.82 Mobile Safari/537.36"
                 },
-            )
+            ).content
         ).get_icon()
 
     return logo_url
@@ -85,7 +86,7 @@ class FeedEntryHelper:
         return self.entry.get("title")
 
     def get_description(self):
-        return self.entry.get("description")
+        return self.entry.get("summary")
 
     def get_date_published(self):
         published_date = self.entry.get("published_parsed")
@@ -94,9 +95,9 @@ class FeedEntryHelper:
         return self._to_datetime_object(published_date)
 
     def get_unique_id(self):
-        id_ = self.entry.get("guid")
+        id_ = self.entry.get("id")
         if not id_:
-            return self.entry.get("id")
+            return self.entry.get("guid")
         else:
             return id_
 
@@ -113,12 +114,19 @@ class FeedEntryHelper:
         return self.get_description()
 
     def _to_datetime_object(self, date_rep):
-        if isinstance(date_rep, datetime):
-            return date_rep
-        elif isinstance(date_rep, struct_time):
-            return datetime.fromtimestamp(mktime(date_rep))
+
+        if isinstance(date_rep, list):
+            return datetime(
+                year=int(date_rep[0]),
+                month=int(date_rep[1]),
+                day=int(date_rep[2]),
+                hour=int(date_rep[3]),
+                minute=int(date_rep[4]),
+                second=int(date_rep[5]),
+                tzinfo=tz.utc,
+            )
         elif isinstance(date_rep, str):
-            return datetime.strptime(str, "%Y-%m-%dT%H:%M:%S%z")
+            return datetime.strptime(date_rep[:19], "%Y-%m-%dT%H:%M:%S")
 
 
 class ProcessMarkUp:
@@ -215,14 +223,12 @@ def md5_hex_digest(text: str):
 
 def process_entries(fetched_entries, to_db):
     entries = fetched_entries.get("entries")
-    # if not entries:
-    #     print("hit am oh")
-    #     return
+    if not entries:
+        return
 
     for entry in entries:
         entry_helper_object = FeedEntryHelper(entry)
         parser = ProcessMarkUp
-
         image_url = clean_image_url(entry_helper_object, parser)
         url = fetched_entries.get("url")
         id_ = entry_helper_object.get_unique_id()
@@ -230,6 +236,7 @@ def process_entries(fetched_entries, to_db):
 
         # creating a digest to know same articles
         str_unique_hex = md5_hex_digest(entry_helper_object.get_title())
+        logo_from_web_url(url)(parser)
 
         to_db(
             hash_id=str_unique_hex,

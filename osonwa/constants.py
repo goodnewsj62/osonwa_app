@@ -1,3 +1,7 @@
+from collections import namedtuple
+
+ScopedUrls = namedtuple("ScopedUrls", ["scope", "urls"])
+
 NEWS_RSS_FEED_URLS = [
     r"https://www.techspot.com/backend.xml",
     r"https://appleinsider.com/rss/news/",
@@ -14,12 +18,15 @@ NEWS_RSS_FEED_URLS = [
     r"https://erpnews.com/feed/",
 ]
 
+
 AGILE_RSS_FEED_URLS = [
     r"https://www.leadingagile.com/blog/feed/",
     r"https://www.mountaingoatsoftware.com/blog/rss",
     r"https://kanbanzone.com/feed/",
     r"https://www.agilealliance.org/feed",
 ]
+
+agile_urls_tuple = ScopedUrls("agile", AGILE_RSS_FEED_URLS)
 
 
 VR_AR_RSS_FEED_URLS = [
@@ -37,6 +44,9 @@ VR_AR_RSS_FEED_URLS = [
     r"https://www.roadtovr.com/feed/",
 ]
 
+vr_ar_urls_namedtuple = ScopedUrls(
+    "virtual reality augumented reality(VR/AR)", VR_AR_RSS_FEED_URLS
+)
 
 PRINTING_3D_RSS_FEED_URLS = [
     r"https://3dprintinguk.com/feed/",
@@ -48,6 +58,9 @@ PRINTING_3D_RSS_FEED_URLS = [
     r"https://3duniverse.org/feed/",
     r"https://3dprint.com/feed/",
 ]
+
+
+printing3d_urls_namedtuple = ScopedUrls("3d printing", PRINTING_3D_RSS_FEED_URLS)
 
 GAME_DEV_RSS_FEED_URLS = [
     r"https://blog.unity.com/feed",
@@ -63,6 +76,8 @@ GAME_DEV_RSS_FEED_URLS = [
 ]
 
 
+gamedev_urls_namedtuple = ScopedUrls("game development", GAME_DEV_RSS_FEED_URLS)
+
 CYBER_SECURITY_RSS_FEED_URLS = [
     r"https://marcoramilli.com/feed/"
     r"https://tacsecurity.com/feed/"
@@ -76,6 +91,9 @@ CYBER_SECURITY_RSS_FEED_URLS = [
     r"https://www.bleepingcomputer.com/rss-feeds/"
 ]
 
+cybersecurity_urls_namedtuple = ScopedUrls(
+    "cyber security", CYBER_SECURITY_RSS_FEED_URLS
+)
 
 WEB_DEV_RSS_FEED_URLS = [
     r"https://martinfowler.com/feed.atom",
@@ -99,6 +117,8 @@ WEB_DEV_RSS_FEED_URLS = [
     r"https://cssauthor.com/feed/",
 ]
 
+
+webdev_urls_namedtuple = ScopedUrls("web development", WEB_DEV_RSS_FEED_URLS)
 
 SCRAPE_URLS = [
     r"https://medium.com/tag/java",
