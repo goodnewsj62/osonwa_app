@@ -33,12 +33,12 @@ from osonwa.constants import (
 
 
 def scrape_websites():
-    chord = group(make_request.s(url) for url in SCRAPE_URLS) | extract_info.s()
+    chord = group((make_request.s(url) | extract_info.s()) for url in SCRAPE_URLS)
     chord()
 
 
 @shared_task(queue="cpu")
-def extract_info(list_of_tuples: Sequence[Union[str, str]]):
+def extract_info(pk, url):
     scrape_strategies = {
         "digitalocean": DigitalOceanStrategy,
         "css-tricks": CssTrickStrategy,
@@ -48,29 +48,30 @@ def extract_info(list_of_tuples: Sequence[Union[str, str]]):
         "about.gitlab": GitBlogStrategy,
     }
 
-    for html_str, url in list_of_tuples:
-        vendor = vendor_fromurl(url)
-        process_markup = ProcessMarkUp(html_str)
-        soup = process_markup.get_bsmarkup()
-        site_icon = process_markup.get_icon()
-        strategy = scrape_strategies[vendor](soup)
-        result_dict = strategy.handle(save_article=lambda **kwargs: print(kwargs))
-        id_ = generate_b64_uuid_string()
+    dump_db = RawFeed.objects.get(id=pk)
 
-        ArticleFeed.objects.create(
-            hash_id=id_,
-            guid=id_,
-            title=result_dict.get("title"),
-            description=process_markup.__class__(
-                result_dict.get("summary")
-            ).extract_text(),
-            link=result_dict.get("link"),
-            date_published=result_dict.get("date"),
-            image_url=result_dict.get("image_url"),
-            logo_url=site_icon,
-            website=vendor,
-            scope="web development",
-        )
+    # TODO: change this to be called each
+    vendor = vendor_fromurl(url)
+    process_markup = ProcessMarkUp(dump_db.string_blob)
+    soup = process_markup.get_bsmarkup()
+    site_icon = process_markup.get_icon()
+    strategy = scrape_strategies[vendor](soup)
+    result_dict = strategy.handle(save_article=lambda **kwargs: print(kwargs))
+    id_ = generate_b64_uuid_string()
+
+    ArticleFeed.objects.create(
+        hash_id=id_,
+        guid=id_,
+        title=result_dict.get("title"),
+        description=process_markup.__class__(result_dict.get("summary")).extract_text(),
+        link=result_dict.get("link"),
+        date_published=result_dict.get("date"),
+        image_url=result_dict.get("image_url"),
+        logo_url=site_icon,
+        website=vendor,
+        scope="web development",
+    )
+    dump_db.delete()
 
 
 def fetch_from_urls():

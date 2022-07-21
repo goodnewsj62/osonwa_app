@@ -8,12 +8,12 @@ import requests
 @shared_task(queue="greenqueue")
 def fetch_rss_entries(url, scope=None):
     entries = FeedParserWrapper(url).fetch_data_entries()
-    print(f"****{len(entries)}")
+    print(f"********ENTRIES COUNT: {len(entries)}")
     instance = RawFeed.objects.create(string_blob=json.dumps(entries))
     return {"raw_id": instance.id, "url": url, "scope": scope}
 
 
-@shared_task(queue="greenqueue")
+@shared_task(queue="cpu")
 def make_request(url):
     try:
         headers = {
@@ -28,4 +28,5 @@ def make_request(url):
         return
 
     if response.status_code == 200:
-        return str(response.content), url
+        dump_instance = RawFeed.objects.create(string_blob=str(response.content))
+        return dump_instance.id, url

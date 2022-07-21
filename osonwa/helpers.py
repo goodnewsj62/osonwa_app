@@ -35,9 +35,6 @@ class MarkupParser(Protocol):
 def logo_from_web_url(url: str):
     # caching make sense here that's the reason for the closure
     parsed_url = urlsplit(url)
-    print(
-        parsed_url,
-    )
     import requests
 
     def logo_url(parser: MarkupParser):
