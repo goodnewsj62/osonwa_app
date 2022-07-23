@@ -148,8 +148,7 @@ class ProcessMarkUp:
         return self.soup
 
     def get_icon(self):
-        head = self.soup.find("head")
-        icon_link = head.find("link", rel="icon")
+        icon_link = self.soup.find("link", rel="icon")
         if icon_link:
             return icon_link.get("href")
         return
@@ -212,9 +211,11 @@ def dictfrom_django_choice_field(dj_choices):
 
 def md5_hex_digest(text: str):
     if not text:
-        text = " "
+        text = ""
 
-    md5_hash = hashlib.md5(text.encode())
+    date = datetime.now(tz=tz.utc).strftime("%Y-%m-%d")
+    # we use date so no article is fetched with same topic for a single day
+    md5_hash = hashlib.md5(f"{text}{date}".encode())
     return str(md5_hash.hexdigest())
 
 

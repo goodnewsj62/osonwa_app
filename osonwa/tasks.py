@@ -13,7 +13,7 @@ def fetch_rss_entries(url, scope=None):
     return {"raw_id": instance.id, "url": url, "scope": scope}
 
 
-@shared_task(queue="cpu")
+@shared_task(queue="greenqueue")
 def make_request(url):
     try:
         headers = {
@@ -22,11 +22,15 @@ def make_request(url):
             "Upgrade-Insecure-Requests": "1",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
         }
-        response = requests.request(method="get", url=url, headers=headers)
-    except ConnectionError:
-        # TODO: log to console
-        return
 
-    if response.status_code == 200:
-        dump_instance = RawFeed.objects.create(string_blob=str(response.content))
-        return dump_instance.id, url
+        import time
+
+        time.sleep(1)  # debounce
+        response = requests.request(method="get", url=url, headers=headers)
+        if response.status_code == 200:
+            dump_instance = RawFeed.objects.create(byte_blob=response.content)
+            return dump_instance.id, url
+    except Exception as e:
+        # TODO: log to file
+        print("error: ", e)
+        return 0, url

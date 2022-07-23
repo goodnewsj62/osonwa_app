@@ -5,6 +5,7 @@ from django.db import models
 
 class DumpDB(models.Model):
     string_blob = models.TextField(null=True)
+    byte_blob = models.BinaryField(null=True)
 
     class Meta:
         abstract = True
@@ -12,16 +13,16 @@ class DumpDB(models.Model):
 
 class Feed(models.Model):
     hash_id = models.TextField(unique=True, null=True, blank=False)
-    gid = models.CharField(max_length=1000, null=False, unique=True, blank=False)
-    title = models.CharField(max_length=500, blank=False, null=False)
-    description = models.TextField()
-    link = models.URLField(null=False, blank=False)
+    gid = models.CharField(max_length=300, null=False, unique=True, blank=False)
+    title = models.CharField(max_length=400, blank=False, null=False)
+    description = models.TextField(null=True)
+    link = models.URLField(max_length=700, null=False, blank=False)
     date_published = models.DateTimeField(null=False, blank=False)
     date_scraped = models.DateTimeField(auto_now_add=True)
-    image_url = models.URLField(null=True, blank=True)
-    logo_url = models.URLField(null=True, blank=True)
+    image_url = models.URLField(max_length=500, null=True, blank=True)
+    logo_url = models.URLField(max_length=500, null=True, blank=True)
     website = models.CharField(max_length=500, null=True, blank=False)
-    scope = models.CharField(max_length=200, null=True, blank=True)
+    scope = models.CharField(max_length=50, null=True, blank=True)
     subscope = models.JSONField(default=dict)
 
     class Meta:

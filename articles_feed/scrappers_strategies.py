@@ -12,7 +12,7 @@ class ScrapingStrategy(ABC):
     """
 
     @abstractmethod
-    def handle(self):
+    def handle(self, save):
         """plug algorithm variation here"""
 
     @staticmethod
@@ -25,7 +25,7 @@ class CssTrickStrategy(ScrapingStrategy):
     def __init__(self, soup) -> None:
         self.soup = soup
 
-    def handle(self):
+    def handle(self, save):
         article_list = self.soup.find_all("article", class_="article-card")
         for article in article_list:
             if "sponsored" in article.find(class_="author-row").get_text().lower():
@@ -39,15 +39,17 @@ class CssTrickStrategy(ScrapingStrategy):
             link = header.find("a").get("href")
             title = re.sub(r"\n", "", header.get_text().strip())
             image_url = image.get("src")
-            summary = content.find("p").get_text(), content.find("p")
+            summary = content.find("p").get_text()
             date = re.sub(r"\n", "", article.find("time").get_text().strip())
 
-            return dict(
-                link=link,
-                title=title,
-                image_url=image_url,
-                summary=summary,  # clean the summary
-                date=self.to_native_date(date),
+            save(
+                {
+                    "link": link,
+                    "title": title,
+                    "image_url": image_url,
+                    "summary": summary,
+                    "date": self.to_native_date(date),
+                }
             )
 
     @staticmethod
@@ -59,7 +61,7 @@ class DigitalOceanStrategy(ScrapingStrategy):
     def __init__(self, soup) -> None:
         self.soup = soup
 
-    def handle(self):
+    def handle(self, save):
         articles = self.soup.find_all("a", class_=re.compile(r"^Tutorial"))
 
         for article in articles:
@@ -72,12 +74,14 @@ class DigitalOceanStrategy(ScrapingStrategy):
             image_url = None
             summary = None
             date = next_siblings[-1].find("span").get_text()
-            return dict(
-                link=link,
-                title=title,
-                image_url=image_url,
-                summary=summary,
-                date=self.to_native_date(date),
+            save(
+                {
+                    "link": link,
+                    "title": title,
+                    "image_url": image_url,
+                    "summary": summary,
+                    "date": self.to_native_date(date),
+                }
             )
 
     @staticmethod
@@ -89,7 +93,7 @@ class MediumStrategy(ScrapingStrategy):
     def __init__(self, soup) -> None:
         self.soup = soup
 
-    def handle(self):
+    def handle(self, save):
         articles = self.soup.find_all("article")
         # helps not to follow sequencial order like a bot
         # articles = random.sample(articles, k=len(articles))
@@ -109,12 +113,14 @@ class MediumStrategy(ScrapingStrategy):
             except IndexError:
                 summary = None
 
-            return dict(
-                link=link,
-                title=title,
-                image_url=image_url,
-                summary=summary,
-                date=self.to_native_date(date),
+            save(
+                {
+                    "link": link,
+                    "title": title,
+                    "image_url": image_url,
+                    "summary": summary,
+                    "date": self.to_native_date(date),
+                }
             )
 
     @staticmethod
@@ -133,22 +139,23 @@ class FreeCodeCampStrategy(ScrapingStrategy):
     def __init__(self, soup) -> None:
         self.soup = soup
 
-    def handle(self):
+    def handle(self, save):
         articles = self.soup.find_all("article")
         for article in articles:
             image_url = article.find("img").get("data-cfsrc")
             title = article.find("h2").get_text().strip()
             link = article.find("h2").a.get("href")
-            date = list(article.find("time").stripped_strings)
+            date = list(article.find("time").stripped_strings)[0]
             summary = None
 
-            # print("\n\n", title, "\n", image_url, "\n", link, "\n", date)
-            return dict(
-                link=link,
-                title=title,
-                image_url=image_url,
-                summary=summary,
-                date=self.to_native_date(date[0]),
+            save(
+                {
+                    "link": link,
+                    "title": title,
+                    "image_url": image_url,
+                    "summary": summary,
+                    "date": self.to_native_date(date),
+                }
             )
 
     @staticmethod
@@ -190,11 +197,10 @@ class SyncFusionStrategy(ScrapingStrategy):
     def __init__(self, soup) -> None:
         self.soup = soup
 
-    def handle(self):
+    def handle(self, save):
         articles = self.soup.find(class_="loop-wrapper").find_all(
             "div", recursive=False
         )
-        print(len(articles))
         for article in articles:
             title_div = article.find("h2")
             link_tag = title_div.find("a")
@@ -211,24 +217,26 @@ class SyncFusionStrategy(ScrapingStrategy):
                 pass
             summary = None
 
-            return dict(
-                link=link,
-                title=title,
-                image_url=image_url,
-                summary=summary,
-                date=self.to_native_date(date.strip()),
+            save(
+                {
+                    "link": link,
+                    "title": title,
+                    "image_url": image_url,
+                    "summary": summary,
+                    "date": self.to_native_date(date),
+                }
             )
 
     @staticmethod
     def to_native_date(date_str: str):
-        return DigitalOceanStrategy.to_native_date(date_str)
+        return DigitalOceanStrategy.to_native_date(date_str.strip())
 
 
 class GitBlogStrategy(ScrapingStrategy):
     def __init__(self, soup) -> None:
         self.soup = soup
 
-    def handle(self):
+    def handle(self, save):
         articles = self.soup.find(class_="blog-recent-post-grid").find_all(
             class_="blog-card"
         )
@@ -246,12 +254,14 @@ class GitBlogStrategy(ScrapingStrategy):
             title = re.sub(r"\n", "", title)
             date = re.sub(r"\n", "", date)
 
-            return dict(
-                link=link,
-                title=title,
-                image_url=image_url,
-                summary=summary,
-                date=self.to_native_date(date.strip()),
+            save(
+                {
+                    "link": link,
+                    "title": title,
+                    "image_url": image_url,
+                    "summary": summary,
+                    "date": self.to_native_date(date),
+                }
             )
 
     @staticmethod

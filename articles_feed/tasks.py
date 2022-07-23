@@ -15,6 +15,7 @@ from articles_feed.scrappers_strategies import (
 from osonwa.helpers import (
     ProcessMarkUp,
     generate_b64_uuid_string,
+    md5_hex_digest,
     process_entries,
     save_feed,
     vendor_fromurl,
@@ -38,7 +39,8 @@ def scrape_websites():
 
 
 @shared_task(queue="cpu")
-def extract_info(pk, url):
+def extract_info(dbkey_url_tuple):
+    pk, url = dbkey_url_tuple
     scrape_strategies = {
         "digitalocean": DigitalOceanStrategy,
         "css-tricks": CssTrickStrategy,
@@ -47,31 +49,47 @@ def extract_info(pk, url):
         "syncfusion": SyncFusionStrategy,
         "about.gitlab": GitBlogStrategy,
     }
+    if pk:  # 0 is returned when execption occur in calling task
+        dump_db = RawFeed.objects.get(id=pk)
+        process_html_str(dump_db.byte_blob.tobytes(), url, scrape_strategies)
+        dump_db.delete()
 
-    dump_db = RawFeed.objects.get(id=pk)
 
-    # TODO: change this to be called each
+def process_html_str(html_string, url, scrape_strategies):
     vendor = vendor_fromurl(url)
-    process_markup = ProcessMarkUp(dump_db.string_blob)
+    process_markup = ProcessMarkUp(html_string)
     soup = process_markup.get_bsmarkup()
-    site_icon = process_markup.get_icon()
-    strategy = scrape_strategies[vendor](soup)
-    result_dict = strategy.handle(save_article=lambda **kwargs: print(kwargs))
-    id_ = generate_b64_uuid_string()
+    strategy = scrape_strategies[vendor](soup)  # pass soup to class
+    create_func = create_article(vendor, process_markup.get_icon())
+    strategy.handle(create_func)
 
-    ArticleFeed.objects.create(
-        hash_id=id_,
-        guid=id_,
-        title=result_dict.get("title"),
-        description=process_markup.__class__(result_dict.get("summary")).extract_text(),
-        link=result_dict.get("link"),
-        date_published=result_dict.get("date"),
-        image_url=result_dict.get("image_url"),
-        logo_url=site_icon,
-        website=vendor,
-        scope="web development",
-    )
-    dump_db.delete()
+
+def create_article(vendor, site_icon):
+    def _create(result_dict):
+        id_ = generate_b64_uuid_string()
+        hash_id = md5_hex_digest(result_dict.get("title"))
+        if result_dict.get("summary"):
+            summary = ProcessMarkUp(result_dict.get("summary")).extract_text()
+        else:
+            summary = None
+
+        if not ArticleFeed.objects.filter(hash_id=hash_id).exists():
+            instance = ArticleFeed.objects.create(
+                hash_id=hash_id,
+                gid=id_,
+                title=result_dict.get("title"),
+                description=summary,
+                link=result_dict.get("link"),
+                date_published=result_dict.get("date"),
+                image_url=result_dict.get("image_url"),
+                logo_url=site_icon
+                if site_icon.startswith("http")
+                else f"https://{vendor}.com",
+                website=vendor,
+                scope="web development",
+            )
+
+    return _create
 
 
 def fetch_from_urls():
