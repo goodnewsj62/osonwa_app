@@ -21,8 +21,9 @@ def fetch_news_rss():
 
 @shared_task(queue="cpu")
 def process_entries_and_save(data: dict):
-    rawfeed_dump_instance = RawFeed.objects.get(id=data.pop("raw_id"))
-    entries = json.loads(rawfeed_dump_instance.string_blob)
-    data.update({"entries": entries})
-    process_entries(data, save_feed(NewsFeed))
-    rawfeed_dump_instance.delete()
+    if data and data.get("raw_id"):
+        rawfeed_dump_instance = RawFeed.objects.get(id=data.pop("raw_id"))
+        entries = json.loads(rawfeed_dump_instance.string_blob)
+        data.update({"entries": entries})
+        process_entries(data, save_feed(NewsFeed))
+        rawfeed_dump_instance.delete()

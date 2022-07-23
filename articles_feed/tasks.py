@@ -51,11 +51,13 @@ def extract_info(dbkey_url_tuple):
     }
     if pk:  # 0 is returned when execption occur in calling task
         dump_db = RawFeed.objects.get(id=pk)
-        process_html_str(dump_db.byte_blob.tobytes(), url, scrape_strategies)
+        process_and_create_article_from_htmlstr(
+            dump_db.byte_blob.tobytes(), url, scrape_strategies
+        )
         dump_db.delete()
 
 
-def process_html_str(html_string, url, scrape_strategies):
+def process_and_create_article_from_htmlstr(html_string, url, scrape_strategies):
     vendor = vendor_fromurl(url)
     process_markup = ProcessMarkUp(html_string)
     soup = process_markup.get_bsmarkup()
@@ -92,7 +94,7 @@ def create_article(vendor, site_icon):
     return _create
 
 
-def fetch_from_urls():
+def fetch_articles_from_urls():
     scoped_tuples = [
         agile_urls_tuple,
         cybersecurity_urls_namedtuple,
@@ -117,8 +119,9 @@ def fetch_rss(scope, urls):
 @shared_task(queue="cpu")
 def process_articles_entries_and_save(data: dict):
     # TODO: bad code repitition of those in news
-    rawfeed_dump_instance = RawFeed.objects.get(id=data.pop("raw_id"))
-    entries = json.loads(rawfeed_dump_instance.string_blob)
-    data.update({"entries": entries})
-    process_entries(data, save_feed(ArticleFeed))
-    rawfeed_dump_instance.delete()
+    if data and data.get("raw_id"):
+        rawfeed_dump_instance = RawFeed.objects.get(id=data.pop("raw_id"))
+        entries = json.loads(rawfeed_dump_instance.string_blob)
+        data.update({"entries": entries})
+        process_entries(data, save_feed(ArticleFeed))
+        rawfeed_dump_instance.delete()

@@ -1,16 +1,22 @@
 import json
+import logging
+
+from django.db import OperationalError, DatabaseError
 from celery import shared_task
+
+
 from news.models import RawFeed
 from osonwa.helpers import FeedParserWrapper
 import requests
+
+logger = logging.getLogger("celery")
 
 
 @shared_task(queue="greenqueue")
 def fetch_rss_entries(url, scope=None):
     entries = FeedParserWrapper(url).fetch_data_entries()
-    print(f"********ENTRIES COUNT: {len(entries)}")
-    instance = RawFeed.objects.create(string_blob=json.dumps(entries))
-    return {"raw_id": instance.id, "url": url, "scope": scope}
+    dump_id = create_feed_dump(json.dumps(entries))
+    return {"raw_id": dump_id, "url": url, "scope": scope}
 
 
 @shared_task(queue="greenqueue")
@@ -28,9 +34,20 @@ def make_request(url):
         time.sleep(1)  # debounce
         response = requests.request(method="get", url=url, headers=headers)
         if response.status_code == 200:
-            dump_instance = RawFeed.objects.create(byte_blob=response.content)
-            return dump_instance.id, url
+            dump_id = create_feed_dump(response.content)
+            return dump_id, url
     except Exception as e:
-        # TODO: log to file
-        print("error: ", e)
+        logger.exception("make_request exception")
         return 0, url
+
+
+def create_feed_dump(dump_input):
+    try:
+        if isinstance(dump_input, str):
+            instance = RawFeed.objects.create(string_blob=dump_input)
+        elif isinstance(dump_input, bytes):
+            instance = RawFeed.objects.create(byte_blob=dump_input)
+        return instance.id
+    except (OperationalError, DatabaseError) as e:
+        logger.exception(f"creating database dump error: {e}")
+        return 0

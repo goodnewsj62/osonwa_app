@@ -1,6 +1,7 @@
 __author__ = "goodnews osonwa john"
 
 import hashlib
+import logging
 import uuid
 import base64
 import re
@@ -9,13 +10,15 @@ from typing import Protocol
 from urllib.parse import urlsplit
 from datetime import datetime, timezone as tz
 
-
+from django.db import IntegrityError
 import feedparser
 import bs4
 from django.core.files.uploadedfile import InMemoryUploadedFile
 
 from PIL import Image
 from io import BytesIO
+
+from psycopg2 import DatabaseError
 
 
 @lru_cache(maxsize=1000)
@@ -92,11 +95,13 @@ class FeedEntryHelper:
         return self._to_datetime_object(published_date)
 
     def get_unique_id(self):
-        id_ = self.entry.get("id")
-        if not id_:
+        if self.entry.get("id"):
+            return self.entry.get("id")
+        elif self.entry.get("guid"):
             return self.entry.get("guid")
         else:
-            return id_
+            id_param = self.get_title() + str(self.get_date_published())
+            return hashlib.md5(id_param.encode()).hexdigest()
 
     def get_entry_url(self):
         return self.entry.get("link")
@@ -219,35 +224,62 @@ def md5_hex_digest(text: str):
     return str(md5_hash.hexdigest())
 
 
-def process_entries(fetched_entries, to_db):
+def process_entries(fetched_entries, db_object):
     entries = fetched_entries.get("entries")
     if not entries:
         return
 
     for entry in entries:
+        # heavy exception handling is done so as dumpdb resource will be
+        # deleted since it is onnly needed once
+        if entry:
+            try:
+                data = process_entry_logic(entry, fetched_entries)
+                save_to_db(db_object, data)
+            except Exception as e:
+                logger = logging.getLogger("celery")
+                logger.exception(f"process entry exception...: {e}")
+
+
+def process_entry_logic(entry, fetched_entries):
+    try:
         entry_helper_object = FeedEntryHelper(entry)
         parser = ProcessMarkUp
-        image_url = clean_image_url(entry_helper_object, parser)
+        extract = {}
+        extract["image_url"] = clean_image_url(entry_helper_object, parser)
         url = fetched_entries.get("url")
         id_ = entry_helper_object.get_unique_id()
-        id_ = id_ if id_ else id_fromurl(url)
+        extract["gid"] = id_ if id_ else id_fromurl(url)
 
         # creating a digest to know same articles
-        str_unique_hex = md5_hex_digest(entry_helper_object.get_title())
-        logo_from_web_url(url)(parser)
+        extract["hash_id"] = md5_hex_digest(entry_helper_object.get_title())
+        extract["logo_url"] = logo_from_web_url(url)(parser)
+        extract["title"] = entry_helper_object.get_title()
+        extract["description"] = parser(
+            entry_helper_object.get_description()
+        ).extract_text()
+        extract["link"] = entry_helper_object.get_entry_url()
+        extract["date_published"] = entry_helper_object.get_date_published()
+        extract["website"] = vendor_fromurl(url)
+        extract["scope"] = fetched_entries.get("scope")
 
-        to_db(
-            hash_id=str_unique_hex,
-            gid=id_,
-            title=entry_helper_object.get_title(),
-            description=parser(entry_helper_object.get_description()).extract_text(),
-            link=entry_helper_object.get_entry_url(),
-            date_published=entry_helper_object.get_date_published(),
-            image_url=image_url,
-            website=vendor_fromurl(url),
-            logo_url=logo_from_web_url(url)(parser),
-            scope=fetched_entries.get("scope"),
-        )
+        return extract
+    except (ValueError, AttributeError) as e:
+        logger = logging.getLogger("celery")
+        logger.exception(f"cpu celery exception from process_entry_logic....: {e}")
+
+
+def save_to_db(db_object, data):
+    logger = logging.getLogger("celery")
+    if not data:
+        return
+
+    try:
+        db_object(**data)
+    except IntegrityError as e:
+        logger.exception(f"cpu celery Integrity exception from save_to_db....: {e}")
+    except DatabaseError as e:
+        logger.exception(f"cpu celery DatabaseError exception from save_to_db....: {e}")
 
 
 def save_feed(dbmodel):
