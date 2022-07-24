@@ -27,9 +27,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+
+if os.getenv("dev"):
+    DEBUG = True
+else:
+    DEBUG = False
 
 AUTH_USER_MODEL = "account.User"
+
+ADMINS = [("osonwa", "osonwajohn@gmail.com")]
 
 
 # Application definition
@@ -155,3 +161,13 @@ CELERY_RESULT_BACKEND = "redis://redisdb:6379"
 CELERYBEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 CELERY_ACKS_LATE = True
 CELERY_CREATE_MISSING_QUEUES = True
+
+
+# loggers
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "fomatters": {},
+    "handlers": {},
+    "loggers": {},
+}
