@@ -43,11 +43,15 @@ def make_request(url):
 
 def create_feed_dump(dump_input):
     try:
-        if isinstance(dump_input, str):
-            instance = RawFeed.objects.create(string_blob=dump_input)
-        elif isinstance(dump_input, bytes):
-            instance = RawFeed.objects.create(byte_blob=dump_input)
-        return instance.id
-    except (OperationalError, DatabaseError) as e:
+        return create_dump_based_on_input_type(dump_input)
+    except (OperationalError, DatabaseError, UnboundLocalError) as e:
         logger.exception(f"creating database dump error: {e}")
         return 0
+
+
+def create_dump_based_on_input_type(dump_input):
+    if isinstance(dump_input, str):
+        instance = RawFeed.objects.create(string_blob=dump_input)
+    elif isinstance(dump_input, bytes):
+        instance = RawFeed.objects.create(byte_blob=dump_input)
+    return instance.id

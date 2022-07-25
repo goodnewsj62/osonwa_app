@@ -169,12 +169,12 @@ LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
-        "simple": {"format": "{levelname} {message}"},
+        "simple": {"format": "{levelname} {message}", "style": "{"},
         "standard": {
             "format": "%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]"
         },
     },
-    "filters": {"require_debug_false": "django.utils.log.RequireDebugFalse"},
+    "filters": {"require_debug_false": {"()": "django.utils.log.RequireDebugFalse"}},
     "handlers": {
         "console": {
             "level": "INFO",
@@ -186,7 +186,7 @@ LOGGING = {
             "formatter": "standard",
             "class": "logging.handlers.RotatingFileHandler",
             "filename": "./logs/django.log",
-            "maxByte": (1024 * 30),
+            "maxBytes": (1024 * 30),
             "backupCount": 3,
         },
         "celery": {
@@ -194,14 +194,14 @@ LOGGING = {
             "formatter": "standard",
             "class": "logging.handlers.RotatingFileHandler",
             "filename": "./logs/celery.log",
-            "maxByte": (1024 * 30),
+            "maxBytes": (1024 * 30),
             "backupCount": 3,
         },
         "mail_admins": {
             "level": "ERROR",
             "formatter": "standard",
             "class": "django.utils.log.AdminEmailHandler",
-            "filter": ["require_debug_false"],
+            "filters": ["require_debug_false"],
         },
     },
     "loggers": {
