@@ -164,10 +164,56 @@ CELERY_CREATE_MISSING_QUEUES = True
 
 
 # loggers
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-    "fomatters": {},
-    "handlers": {},
-    "loggers": {},
+    "formatters": {
+        "simple": {"format": "{levelname} {message}"},
+        "standard": {
+            "format": "%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]"
+        },
+    },
+    "filters": {"require_debug_false": "django.utils.log.RequireDebugFalse"},
+    "handlers": {
+        "console": {
+            "level": "INFO",
+            "formatter": "simple",
+            "class": "logging.StreamHandler",
+        },
+        "file": {
+            "level": "WARNING",
+            "formatter": "standard",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": "./logs/django.log",
+            "maxByte": (1024 * 30),
+            "backupCount": 3,
+        },
+        "celery": {
+            "level": "WARNING",
+            "formatter": "standard",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": "./logs/celery.log",
+            "maxByte": (1024 * 30),
+            "backupCount": 3,
+        },
+        "mail_admins": {
+            "level": "ERROR",
+            "formatter": "standard",
+            "class": "django.utils.log.AdminEmailHandler",
+            "filter": ["require_debug_false"],
+        },
+    },
+    "loggers": {
+        "celery": {
+            "handlers": ["mail_admins", "celery"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        "django": {
+            "handlers": ["mail_admins", "file", "console"],
+            "level": "INFO",
+            "propagate": True,
+        },
+    },
 }

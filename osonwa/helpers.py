@@ -106,7 +106,7 @@ class FeedEntryHelper:
     def get_entry_url(self):
         return self.entry.get("link")
 
-    def get_image_url(self):
+    def get_image_url_or_possible_image_html(self):
         media_content = self.entry.get("media_content")
         if isinstance(media_content, list):
             return media_content[0].get("url")
@@ -160,14 +160,12 @@ class ProcessMarkUp:
 
 
 def clean_image_url(entry_helper_object, parser):
-    image_url_content = entry_helper_object.get_image_url()
+    image_url_content = entry_helper_object.get_image_url_or_possible_image_html()
 
     if image_url_content and image_url_content.startswith("http"):
         return image_url_content
     elif image_url_content:
         return parser(image_url_content).extract_image()
-    elif entry_helper_object.get_description():
-        return parser(entry_helper_object.get_description()).extract_image()
     else:
         return None
 
@@ -234,14 +232,14 @@ def process_entries(fetched_entries, db_object):
         # deleted since it is onnly needed once
         if entry:
             try:
-                data = process_entry_logic(entry, fetched_entries)
+                data = process_entry_and_return_dict_result(entry, fetched_entries)
                 save_to_db(db_object, data)
             except Exception as e:
                 logger = logging.getLogger("celery")
                 logger.exception(f"process entry exception...: {e}")
 
 
-def process_entry_logic(entry, fetched_entries):
+def process_entry_and_return_dict_result(entry, fetched_entries):
     try:
         entry_helper_object = FeedEntryHelper(entry)
         parser = ProcessMarkUp
@@ -266,7 +264,9 @@ def process_entry_logic(entry, fetched_entries):
         return extract
     except (ValueError, AttributeError) as e:
         logger = logging.getLogger("celery")
-        logger.exception(f"cpu celery exception from process_entry_logic....: {e}")
+        logger.exception(
+            f"cpu celery exception from process_entry_and_return_dict_result....: {e}"
+        )
 
 
 def save_to_db(db_object, data):
