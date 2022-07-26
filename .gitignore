@@ -26,6 +26,8 @@ init.*
 
 *.log
 *.logs
+*.log.*
+*.logs.*
 
 *.sqlite*
 *.db
