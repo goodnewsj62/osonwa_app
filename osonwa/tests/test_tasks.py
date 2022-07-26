@@ -1,8 +1,8 @@
 import pytest
 from news.models import RawFeed
 
-from osonwa.tasks import create_dump_based_on_input_type
-from osonwa.assert_helpers import assert_equal, assert_true
+from osonwa.tasks import create_dump_based_on_input_type, create_feed_dump
+from osonwa.assert_helpers import assert_equal, assert_isinstance, assert_true
 
 
 def test_create_feed_dump_based_on_bytes_input(db):
@@ -27,5 +27,6 @@ def test_create_feed_dump_based_on_invalid_input(db):
         create_dump_based_on_input_type(test_input)
 
 
-def test_create_feed_dump_with_no_db(db):
-    pass
+def test_create_feed_dump_execption_handling(db):
+    id_ = create_feed_dump(None)
+    assert_equal(id_, 0)

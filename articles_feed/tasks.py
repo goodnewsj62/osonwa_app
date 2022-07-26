@@ -1,5 +1,4 @@
 import json
-from typing import Sequence, Union
 
 from celery import group, shared_task
 
