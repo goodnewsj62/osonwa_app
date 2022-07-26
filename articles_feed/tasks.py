@@ -50,13 +50,29 @@ def extract_info(dbkey_url_tuple):
     }
     if pk:  # 0 is returned when execption occur in calling task
         dump_db = RawFeed.objects.get(id=pk)
-        process_and_create_article_from_htmlstr(
-            dump_db.byte_blob.tobytes(), url, scrape_strategies
-        )
+
+        html_bytes_str = get_html_bytes_str(dump_db)
+        process_and_create_article_from_htmlstr(html_bytes_str, url, scrape_strategies)
+
         dump_db.delete()
 
 
+def get_html_bytes_str(db_model):
+    try:
+        html_bytes_str = db_model.byte_blob.tobytes()
+    except AttributeError:
+        html_bytes_str = db_model.byte_blob
+    return html_bytes_str
+
+
 def process_and_create_article_from_htmlstr(html_string, url, scrape_strategies):
+    if not (
+        html_string and len(html_string) and url and isinstance(scrape_strategies, dict)
+    ):
+        raise Exception(
+            "args criteria for function process_and_create_article_from_html_not met"
+        )
+
     vendor = vendor_fromurl(url)
     process_markup = ProcessMarkUp(html_string)
     soup = process_markup.get_bsmarkup()
