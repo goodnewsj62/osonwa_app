@@ -3,6 +3,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 
 from account.custom_manger import UserManager
+from osonwa.general_models import Saved
 from osonwa.helpers import inmemory_wrapper
 
 # Create your models here.
@@ -109,8 +110,8 @@ class Notification(models.Model):
 
     action_by = models.ForeignKey("account.User", null=True, on_delete=models.CASCADE)
     action = models.CharField(max_length=80, choices=ACTIONS, blank=False, null=False)
-    post_url = models.URLField()
-    backend_url = models.URLField()
+    post_url = models.URLField(max_length=300)
+    backend_url = models.URLField(max_length=300)
     post_content = models.TextField(null=True, blank=True)
     is_read = models.BooleanField(default=False)
     date_created = models.DateTimeField(auto_now_add=True)
@@ -124,3 +125,25 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"{self.owner.email}"
+
+
+class BookMarked(Saved):
+    user = models.ForeignKey(
+        "account.User",
+        on_delete=models.CASCADE,
+        related_name="bookmarked",
+        related_query_name="bookmarked",
+    )
+
+    # content =  models
+
+
+class History(Saved):
+    user = models.ForeignKey(
+        "account.User",
+        on_delete=models.CASCADE,
+        related_name="history",
+        related_query_name="history",
+    )
+
+    # content =

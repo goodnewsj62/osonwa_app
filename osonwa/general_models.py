@@ -1,6 +1,7 @@
 import json
-from attr import s
+
 from django.db import models
+from django.utils import timezone
 
 
 class DumpDB(models.Model):
@@ -69,6 +70,11 @@ class UserFeedGroup(models.Model):
         self.topics_rank = existing_topics
 
 
+class Saved(models.Model):
+    content_type = models.CharField(max_length=30, null=False, blank=False)
+    date_saved = models.DateTimeField(default=timezone.now)
+
+
 class UserReaction(models.Model):
     REACTION_CHOICES = [
         ("facesunglass", "face with sunglass"),  # "\U0001F60E"
@@ -110,6 +116,5 @@ class UserReaction(models.Model):
 
         self.reaction = existing_reactions
 
-
-# check if data is instance of str if it is get existing reaction and loads incoming reactions
-# then add all incoming reactions to existing reaction then set reaction and save return the saved reasctions
+    # check if data is instance of str if it is get existing reaction and loads incoming reactions
+    # then add all incoming reactions to existing reaction then set reaction and save return the saved reasctions
