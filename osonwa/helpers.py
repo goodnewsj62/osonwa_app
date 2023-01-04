@@ -193,7 +193,7 @@ def resizeImage(image, width_size=400, format_: str = "jpeg"):
 
 
 def inmemory_wrapper(image, default_path: str):
-    if image == default_path:
+    if (not image) or image == default_path:
         return image
 
     format_ = "".join(image.url.split(".")[-1:])

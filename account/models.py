@@ -1,4 +1,3 @@
-from email.policy import default
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 
@@ -44,6 +43,7 @@ class SocialAccount(models.Model):
         ("apple", "apple"),
         ("linkedin", "linkedin"),
         ("goolge", "google"),
+        ("facebook", "facebook"),
     ]
 
     social_id = models.TextField()

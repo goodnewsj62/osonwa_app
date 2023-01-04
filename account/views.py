@@ -9,7 +9,8 @@ from account.serializers import NotificationSerializer, ProfileSerializer
 
 
 class SignupViewSet(viewsets.ViewSet):
-    pass
+    def create(self, *args, **kwargs):
+        pass
 
 
 class NotificationViewSet(viewsets.ModelViewSet):
@@ -28,3 +29,17 @@ class ProfileViewSet(viewsets.ModelViewSet):
 
 class BookmarkedViewSet(viewsets.ModelViewSet):
     pass
+
+
+class GoogleLoginView(APIView):
+    def post(self, request, format=None):
+        # get my access token
+        # validate my access token with is_valid
+        # authenticate user and if such user exists
+        # generate simple-jwt token
+        pass
+
+
+class GoogleSignup(APIView):
+    def post(self, request, format=None):
+        pass

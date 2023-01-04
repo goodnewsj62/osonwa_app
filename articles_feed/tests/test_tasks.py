@@ -4,8 +4,6 @@ import json
 from unittest.mock import patch
 
 from django.conf import settings
-import pytest
-
 
 from articles_feed.tasks import extract_info, process_articles_entries_and_save
 from articles_feed.models import ArticleFeed

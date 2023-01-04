@@ -67,3 +67,4 @@ wcwidth==0.2.5
 wrapt==1.14.1
 zope.event==4.5.0
 zope.interface==5.4.0
+google-api-python-client==2.70.0
