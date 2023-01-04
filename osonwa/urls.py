@@ -20,6 +20,6 @@ from account.views import TokenObtainPairView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("/authenticate", TokenObtainPairView.as_view(), name="token"),
-    path("/auth", include("account.urls")),
+    path("authenticate/", TokenObtainPairView.as_view(), name="token"),
+    path("auth/", include("account.urls")),
 ]
