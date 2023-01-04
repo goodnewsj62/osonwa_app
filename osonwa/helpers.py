@@ -9,6 +9,7 @@ from functools import lru_cache
 from typing import Protocol
 from urllib.parse import urlsplit
 from datetime import datetime, timezone as tz
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from django.db import IntegrityError
 import feedparser
@@ -19,6 +20,11 @@ from PIL import Image
 from io import BytesIO
 
 from psycopg2 import DatabaseError
+
+
+def get_auth_token(user):
+    refresh = RefreshToken.for_user(user)
+    return {"access": str(refresh.access_token), "refresh": str(refresh)}
 
 
 @lru_cache(maxsize=1000)
