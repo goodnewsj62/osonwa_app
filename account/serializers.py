@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from account.models import Notification, Profile, SocialAccount, User
 from account.oauth import GoogleHelper
@@ -43,7 +44,7 @@ class GoogleAuthSerializer(serializers.Serializer):
         return data
 
 
-class GoogleSignInSerializer(GoogleAuthSerializer, serializers.ModelSerializer):
+class GoogleSignUpSerializer(GoogleAuthSerializer, serializers.ModelSerializer):
     class Meta:
         model = User
         fields = "__all__"
@@ -56,3 +57,12 @@ class GoogleSignInSerializer(GoogleAuthSerializer, serializers.ModelSerializer):
 
         user = perform_user_creation(provider, user_id, **validated_data)
         return user
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        tokens = super().get_token(user)
+        # tokens["type"] = "login"
+
+        return tokens

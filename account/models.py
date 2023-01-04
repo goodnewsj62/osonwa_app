@@ -46,7 +46,7 @@ class SocialAccount(models.Model):
         ("facebook", "facebook"),
     ]
 
-    social_id = models.TextField()
+    social_id = models.TextField(unique=True)
     provider = models.CharField(
         max_length=20, choices=SOCIAL_CHOICES, blank=False, null=False
     )

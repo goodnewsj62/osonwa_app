@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.urls import reverse
 from rest_framework import viewsets, status, permissions
 from rest_framework.response import Response
 from rest_framework.decorators import action, api_view, APIView
@@ -10,6 +10,7 @@ from account.serializers import (
     NotificationSerializer,
     ProfileSerializer,
     GoogleAuthSerializer,
+    GoogleSignUpSerializer,
     CustomTokenObtainPairSerializer,
 )
 
@@ -43,6 +44,17 @@ class BookmarkedViewSet(viewsets.ModelViewSet):
     pass
 
 
+@api_view(["post"])
+def verify_user_exists(request):
+    email = request.data.get("email")
+    user_id = request.data.get("user_id")
+
+    user = User.objects.filter(email=email, social_accounts__social_id=user_id)
+    if user.exists():
+        return Response({"user_status": True})
+    return Response({"user_status": False})
+
+
 class GoogleLoginView(APIView):
     def post(self, request, format=None):
         serializer = GoogleAuthSerializer(data=request.data)
@@ -57,13 +69,15 @@ class GoogleLoginView(APIView):
             resp = get_auth_token(user)
             return Response(resp)
         return Response(
-            {"message": "user does not exists"}, status=status.HTTP_404_NOT_FOUND
+            {"message": {"url": reverse("auth:g_signup")}},
+            status=status.HTTP_308_PERMANENT_REDIRECT,
         )
-
-    # @action(methods=["post"], detail=False, url_path="/verify")
-    # def verify_details()
 
 
 class GoogleSignup(APIView):
     def post(self, request, format=None):
-        pass
+        serializer = GoogleSignUpSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save()
+        response = get_auth_token(instance)
+        return Response(response)
