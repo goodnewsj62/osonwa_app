@@ -8,10 +8,9 @@ CLIENT_ID = os.getenv("G_CLIENT_ID")
 
 class GoogleHelper:
     @staticmethod
-    def validate(token):
+    def verify(token):
         try:
             resp = id_token.verify_oauth2_token(token, requests.Request(), CLIENT_ID)
-
             return True, resp
         except ValueError:
             return False, {}

@@ -59,10 +59,10 @@ class GoogleLoginView(APIView):
     def post(self, request, format=None):
         serializer = GoogleAuthSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        validated_data = serializer.validated_data
+        user_data = serializer.validated_data.get("token")
         user = User.objects.filter(
-            email=validated_data.get("email"),
-            social_accounts__social_id=validated_data.get("sub"),
+            email=user_data.get("email"),
+            social_accounts__social_id=user_data.get("sub"),
         )
         if user.exists():
             # generate_token

@@ -74,6 +74,10 @@ class Saved(models.Model):
     content_type = models.CharField(max_length=30, null=False, blank=False)
     date_saved = models.DateTimeField(default=timezone.now)
 
+    class Meta:
+        abstract = True
+        app_label = "account"
+
 
 class UserReaction(models.Model):
     REACTION_CHOICES = [
