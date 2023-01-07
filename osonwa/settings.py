@@ -163,6 +163,10 @@ REST_FRAMEWORK = {
         "rest_framework.pagination.PageNumberPagination",
     ],
     "PAGE_SIZE": 50,
+    "DEFAULT_RENDERER_CLASSES": [
+        "osonwa.drf_helpers.CustomRenderer",
+        "rest_framework.renderers.BrowsableAPIRenderer",
+    ],
 }
 
 
