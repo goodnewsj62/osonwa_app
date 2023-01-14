@@ -69,7 +69,12 @@ class GoogleLoginView(APIView):
             resp = get_auth_token(user)
             return Response(resp)
         return Response(
-            {"message": {"url": reverse("auth:g_signup")}},
+            {
+                "message": {
+                    "url": reverse("auth:g_signup"),
+                    "email": user_data.get("email"),
+                }
+            },
             status=status.HTTP_308_PERMANENT_REDIRECT,
         )
 

@@ -5,6 +5,8 @@ import logging
 import uuid
 import base64
 import re
+import string
+import random 
 from functools import lru_cache
 from typing import Protocol
 from urllib.parse import urlsplit
@@ -297,3 +299,8 @@ def save_feed(dbmodel):
             dbmodel.objects.create(**kwargs)
 
     return to_db
+
+
+def create_random_word(length=5):
+    alphabets =  string.ascii_lowercase
+    random_letters = "".join(random.choices(alphabets, k=length))
