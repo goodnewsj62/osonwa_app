@@ -16,10 +16,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
-from account.views import TokenObtainPairView
+from account.views import CustomTokenObtainPairView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("authenticate/", TokenObtainPairView.as_view(), name="token"),
+    path("authenticate/", CustomTokenObtainPairView.as_view(), name="token"),
     path("auth/", include("account.urls")),
 ]
