@@ -86,3 +86,10 @@ class GoogleSignup(APIView):
         instance = serializer.save()
         response = get_auth_token(instance)
         return Response(response)
+
+
+class UserNameExistsCheck(APIView):
+    def get(self, request, format=None):
+        username = request.query_params.get("username")
+        status = User.objects.filter(username=username).exists()
+        return Response({"status": status})
