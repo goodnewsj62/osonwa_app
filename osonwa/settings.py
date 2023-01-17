@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 
 import os
 from pathlib import Path
+from datetime import timedelta
 from dotenv import find_dotenv, load_dotenv
 
 load_dotenv(find_dotenv())
@@ -167,6 +168,13 @@ REST_FRAMEWORK = {
         "osonwa.drf_helpers.CustomRenderer",
         "rest_framework.renderers.BrowsableAPIRenderer",
     ],
+}
+
+# SIMPLEJWT
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
+    "ROTATE_REFRESH_TOKENS": True,
 }
 
 

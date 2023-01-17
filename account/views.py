@@ -1,4 +1,5 @@
 from django.urls import reverse
+from django.utils.decorators import method_decorator
 from rest_framework import viewsets, status, permissions
 from rest_framework.response import Response
 from rest_framework.decorators import action, api_view, APIView
@@ -6,6 +7,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from account.models import Notification, Profile, User
 from osonwa.helpers import get_auth_token
+from account.helpers import create_social_account
+from osonwa.decorators import ensure_atomic
 from account.serializers import (
     NotificationSerializer,
     ProfileSerializer,
@@ -56,18 +59,22 @@ def verify_user_exists(request):
 
 
 class GoogleLoginView(APIView):
+    @method_decorator(ensure_atomic)
     def post(self, request, format=None):
         serializer = GoogleAuthSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user_data = serializer.validated_data.get("token")
-        user = User.objects.filter(
-            email=user_data.get("email"),
-            social_accounts__social_id=user_data.get("sub"),
-        )
-        if user.exists():
+        social_id = user_data.get("sub")
+        user = User.objects.filter(email=user_data.get("email"))
+        if user.filter(social_accounts__social_id=social_id).exists():
             # generate_token
-            resp = get_auth_token(user)
+            resp = get_auth_token(user.first())
             return Response(resp)
+        elif user.exists():
+            create_social_account(user.first(), social_id, "google")
+            resp = get_auth_token(user.first())
+            return Response(resp)
+
         return Response(
             {
                 "message": {

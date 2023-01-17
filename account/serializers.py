@@ -48,6 +48,7 @@ class GoogleSignUpSerializer(GoogleAuthSerializer, serializers.ModelSerializer):
     class Meta:
         model = User
         fields = "__all__"
+        extra_kwargs = {"password": {"required": False}}
 
     def create(self, validated_data: dict):
         data = validated_data.pop("token")
