@@ -60,6 +60,44 @@ class GoogleSignUpSerializer(GoogleAuthSerializer, serializers.ModelSerializer):
         return user
 
 
+class TwitterAuthSerializer(serializers.Serializer):
+    oauth_token = serializers.CharField(
+        required=True, allow_blank=False, allow_null=False
+    )
+    oauth_verifier = serializers.CharField(
+        required=True, allow_blank=False, allow_null=False
+    )
+    social_id = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    email_provided = serializers.CharField(
+        required=False, allow_null=True, allow_blank=True
+    )
+
+    def validate(self, data):
+        api_object = self.context.get("api_object")
+        status, info = api_object.get_user_info(
+            data["oauth_token"], data["oauth_verifier"]
+        )
+        if status:
+            data["social_id"] = info.get("social_id")
+            data["email_provided"] = info.get("email")
+        else:
+            raise serializers.ValidationError("could not fetch user information")
+        return data
+
+
+class TwitterSignupSerializer(TwitterAuthSerializer, serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = "__all__"
+        extra_kwargs = {"password": {"required": False}}
+
+    def create(self, validated_data: dict):
+        user_id = validated_data["social_id"]
+
+        user = perform_user_creation("twitter", user_id, **validated_data)
+        return user
+
+
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):

@@ -9,12 +9,15 @@ from account.models import Notification, Profile, User
 from osonwa.helpers import get_auth_token
 from account.helpers import create_social_account
 from osonwa.decorators import ensure_atomic
+from account.oauth import TwitterHelper
 from account.serializers import (
     NotificationSerializer,
     ProfileSerializer,
     GoogleAuthSerializer,
     GoogleSignUpSerializer,
     CustomTokenObtainPairSerializer,
+    TwitterAuthSerializer,
+    TwitterSignupSerializer,
 )
 
 # Create your views here.
@@ -65,14 +68,15 @@ class GoogleLoginView(APIView):
         serializer.is_valid(raise_exception=True)
         user_data = serializer.validated_data.get("token")
         social_id = user_data.get("sub")
-        user = User.objects.filter(email=user_data.get("email"))
-        if user.filter(social_accounts__social_id=social_id).exists():
+        user_ = User.objects.filter(email=user_data.get("email"))
+        user = user_.first()
+        if user_.filter(social_accounts__social_id=social_id).exists():
             # generate_token
-            resp = get_auth_token(user.first())
+            resp = get_auth_token(user)
             return Response(resp)
-        elif user.exists():
-            create_social_account(user.first(), social_id, "google")
-            resp = get_auth_token(user.first())
+        elif user_.exists():
+            create_social_account(user, social_id, "google")
+            resp = get_auth_token(user)
             return Response(resp)
 
         return Response(
@@ -100,3 +104,42 @@ class UserNameExistsCheck(APIView):
         username = request.query_params.get("username")
         status = User.objects.filter(username=username).exists()
         return Response({"status": status})
+
+
+class TwitterSignInView(APIView):
+    api_helper = TwitterHelper()
+
+    def get(self, request, format=None):
+        redirect_url = self.api_helper.get_request_token()
+        return Response({"url": redirect_url})
+
+    def post(self, request, format=None):
+        context = {"api_object": self.api_helper}
+        serializer = TwitterAuthSerializer(data=request.data, context=context)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data.get("email_provided")
+        social_id = serializer.validated_data.get("social_id")
+
+        user_queryset = User.objects.filter(email=email)
+        user = user_queryset.first()
+
+        if user_queryset.filter(social_accounts__social_id=social_id).exists():
+            return Response(get_auth_token(user))
+        elif user_queryset.exists():
+            create_social_account(user, social_id, "twitter")
+            return Response(get_auth_token(user))
+
+        resp = {"url": reverse("auth:tw_signup"), "email": email}
+        return Response({"message": resp}, status=status.HTTP_308_PERMANENT_REDIRECT)
+
+
+class TwitterSignUpView(APIView):
+    api_helper = TwitterHelper()
+
+    def post(self, request, format=None):
+        context = {"api_object": self.api_helper}
+        serializer = TwitterSignupSerializer(data=request.data, context=context)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        resp = get_auth_token(user)
+        return Response(resp)
