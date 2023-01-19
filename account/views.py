@@ -18,6 +18,8 @@ from account.serializers import (
     CustomTokenObtainPairSerializer,
     TwitterAuthSerializer,
     TwitterSignupSerializer,
+    FacebookSerializer,
+    FacebookSignUpSerializer,
 )
 
 # Create your views here.
@@ -99,6 +101,45 @@ class GoogleSignup(APIView):
         return Response(response)
 
 
+class FacebookLoginView(APIView):
+    @method_decorator(ensure_atomic)
+    def post(self, request, format=None):
+        serializer = FacebookSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user_data = serializer.validated_data.get("token")
+        social_id = user_data.get("id")
+        user_ = User.objects.filter(email=user_data.get("email"))
+        user = user_.first()
+        if user_.filter(social_accounts__social_id=social_id).exists():
+            # generate_token
+            resp = get_auth_token(user)
+            return Response(resp)
+
+        elif user_.exists():
+            create_social_account(user, social_id, "facebook")
+            resp = get_auth_token(user)
+            return Response(resp)
+
+        return Response(
+            {
+                "message": {
+                    "url": reverse("auth:fb_signup"),
+                    "email": user_data.get("email"),
+                }
+            },
+            status=status.HTTP_308_PERMANENT_REDIRECT,
+        )
+
+
+class FaceBookSignupView(APIView):
+    def post(self, request, format=None):
+        serializer = FacebookSignUpSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save()
+        response = get_auth_token(instance)
+        return Response(response)
+
+
 class UserNameExistsCheck(APIView):
     def get(self, request, format=None):
         username = request.query_params.get("username")
@@ -113,6 +154,7 @@ class TwitterSignInView(APIView):
         redirect_url = self.api_helper.get_request_token()
         return Response({"url": redirect_url})
 
+    @method_decorator(ensure_atomic)
     def post(self, request, format=None):
         context = {"api_object": self.api_helper}
         serializer = TwitterAuthSerializer(data=request.data, context=context)
@@ -129,16 +171,17 @@ class TwitterSignInView(APIView):
             create_social_account(user, social_id, "twitter")
             return Response(get_auth_token(user))
 
-        resp = {"url": reverse("auth:tw_signup"), "email": email}
+        resp = {
+            "url": reverse("auth:tw_signup"),
+            "email": email,
+            "social_id": social_id,
+        }
         return Response({"message": resp}, status=status.HTTP_308_PERMANENT_REDIRECT)
 
 
 class TwitterSignUpView(APIView):
-    api_helper = TwitterHelper()
-
     def post(self, request, format=None):
-        context = {"api_object": self.api_helper}
-        serializer = TwitterSignupSerializer(data=request.data, context=context)
+        serializer = TwitterSignupSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         resp = get_auth_token(user)

@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from account.models import Notification, Profile, SocialAccount, User
-from account.oauth import GoogleHelper
+from account.oauth import GoogleHelper, FacebookHelper
 from account.helpers import perform_user_creation
 
 
@@ -60,6 +60,37 @@ class GoogleSignUpSerializer(GoogleAuthSerializer, serializers.ModelSerializer):
         return user
 
 
+class FacebookSerializer(serializers.Serializer):
+    token = serializers.CharField(required=True)
+    user_id = serializers.CharField(required=True)
+
+    def validate(self, data):
+        token = data.get("token")
+        user_id = data.get("user_id")
+        status, user_info = FacebookHelper.verify(token, user_id)
+        if not status:
+            raise serializers.ValidationError("Login unsuccessful")
+
+        data["token"] = user_info
+        return data
+
+
+class FacebookSignUpSerializer(FacebookSerializer, serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = "__all__"
+        extra_kwargs = {"password": {"required": False}}
+
+    def create(self, validated_data: dict):
+        data = validated_data.pop("token")
+
+        user_id = data["id"]
+        provider = "facebook"
+
+        user = perform_user_creation(provider, user_id, **validated_data)
+        return user
+
+
 class TwitterAuthSerializer(serializers.Serializer):
     oauth_token = serializers.CharField(
         required=True, allow_blank=False, allow_null=False
@@ -85,14 +116,19 @@ class TwitterAuthSerializer(serializers.Serializer):
         return data
 
 
-class TwitterSignupSerializer(TwitterAuthSerializer, serializers.ModelSerializer):
+class TwitterSignupSerializer(serializers.ModelSerializer):
+    social_id = serializers.CharField(
+        required=True, allow_null=False, allow_blank=False
+    )
+    email = serializers.CharField(required=True, allow_null=False, allow_blank=False)
+
     class Meta:
         model = User
         fields = "__all__"
         extra_kwargs = {"password": {"required": False}}
 
     def create(self, validated_data: dict):
-        user_id = validated_data["social_id"]
+        user_id = validated_data.pop("social_id")
 
         user = perform_user_creation("twitter", user_id, **validated_data)
         return user
