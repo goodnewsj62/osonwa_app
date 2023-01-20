@@ -1,11 +1,13 @@
 from django.urls import reverse
+from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from rest_framework import viewsets, status, permissions
 from rest_framework.response import Response
 from rest_framework.decorators import action, api_view, APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from account.models import Notification, Profile, User
+from account.models import Notification, Profile, User, Interest
+from utils.permissions import IsUserAccount, LockOut
 from osonwa.helpers import get_auth_token
 from account.helpers import create_social_account
 from osonwa.decorators import ensure_atomic
@@ -29,23 +31,10 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
 
-class SignupViewSet(viewsets.ViewSet):
-    def create(self, *args, **kwargs):
-        pass
-
-
 class NotificationViewSet(viewsets.ModelViewSet):
     queryset = Notification.objects.all()
     serializer_class = NotificationSerializer
     permission_classes = [permissions.IsAuthenticated]
-
-
-class ProfileViewSet(viewsets.ModelViewSet):
-    serializer_class = ProfileSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        return
 
 
 class BookmarkedViewSet(viewsets.ModelViewSet):
@@ -186,3 +175,47 @@ class TwitterSignUpView(APIView):
         user = serializer.save()
         resp = get_auth_token(user)
         return Response(resp)
+
+
+class PasswordChangeView(APIView):
+    pass
+
+
+class AccountProfileView(viewsets.ModelViewSet):
+    queryset = Profile.objects.select_related("user").prefetch_related(
+        "user__interests"
+    )
+    permission_classes = [IsUserAccount]
+    serializer_class = ProfileSerializer
+    lookup_field = "username"
+
+    def get_object(self):
+        queryset = self.get_queryset()
+        lookup = "user__" + self.lookup_field
+        filter_ = {lookup: self.kwargs[self.lookup_field]}
+        obj = get_object_or_404(queryset, **filter_)
+        self.check_object_permissions(self.request, obj.user)
+        return obj
+
+    def get_permissions(self):
+        perm_classes = self.permission_classes
+        if self.action in ["list", "create"]:
+            return [LockOut()]
+        return [perm() for perm in perm_classes]
+
+
+@api_view(["delete"])
+def remove_interests(request, *args, **kwargs):
+    interest = request.data.get("interest")
+    if not interest:
+        message = {"error": ["interest  field is required"]}
+        return Response(message, status=status.HTTP_400_BAD_REQUEST)
+
+    interest = Interest.objects.filter(name=interest).first()
+
+    if not interest:
+        message = {"error": ["no such interest exists"]}
+        return Response(message, status=status.HTTP_400_BAD_REQUEST)
+
+    interest.users.remove(request.user)
+    return Response({"message": "success"})

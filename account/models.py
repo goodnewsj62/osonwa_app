@@ -13,6 +13,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(
         "last name", max_length=300, null=False, blank=True, default=""
     )
+
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
@@ -77,6 +78,11 @@ class Profile(models.Model):
         related_query_name="profile",
     )
     image = models.ImageField(upload_to="images/profile/", default="images/default.jpg")
+    twitter_url = models.TextField(null=True, blank=False)
+    facebook_url = models.TextField(null=True, blank=False)
+    gmail_url = models.TextField(null=True, blank=False)
+    linkedin_url = models.TextField(null=True, blank=False)
+    git_url = models.TextField(null=True, blank=False)
     newsletter_notification = models.BooleanField(default=False)
 
     class Meta:
@@ -138,12 +144,11 @@ class BookMarked(Saved):
     # content =  models
 
 
-class History(Saved):
-    user = models.ForeignKey(
-        "account.User",
-        on_delete=models.CASCADE,
-        related_name="history",
-        related_query_name="history",
+class Interest(models.Model):
+    name = models.CharField(max_length=60, blank=False, null=False, unique=True)
+    users = models.ManyToManyField(
+        "account.User", related_name="interests", related_query_name="interest"
     )
 
-    # content =
+    def __str__(self) -> str:
+        return f"{self.name}"

@@ -21,9 +21,12 @@ class GoogleHelper:
 class FacebookHelper:
     @staticmethod
     def verify(token, user_id):
+        # pass
         try:
             fb = FacebookApi(access_token=token)
-            resp = fb.user.get_info(user_id=user_id, fields=["id", "email"],return_json=True)
+            resp = fb.user.get_info(
+                user_id=user_id, fields=["id", "email"], return_json=True
+            )
             return True, resp
         except ValueError:
             return False, {}

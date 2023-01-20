@@ -1,23 +1,65 @@
+from collections import OrderedDict
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from account.models import Notification, Profile, SocialAccount, User
 from account.oauth import GoogleHelper, FacebookHelper
 from account.helpers import perform_user_creation
+from utils.gen_helpers import setattr_if_exists
 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = "__all__"
-        extra_kwargs = {}
+        extra_kwargs = {"password": {"write_only": True, "required": False}}
 
 
 class ProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer(many=False, required=False)
+
     class Meta:
         model = Profile
         fields = "__all__"
         extra_kwargs = {}
+
+    def validate(self, attrs):
+        username = attrs.get("username")
+        current_user = self.context.get("request").user
+        user_exists = (
+            User.objects.exclude(id=current_user.id).filter(username=username).exists()
+        )
+        if username and user_exists:
+            raise serializers.ValidationError("username already exists")
+        return super().validate(attrs)
+
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop("user", {})
+        user = instance.user
+
+        setattr_if_exists(user, user_data)
+        user.save()
+
+        setattr_if_exists(instance, validated_data)
+        instance.save()
+
+        return instance
+
+    def to_internal_value(self, data):
+        user_data = OrderedDict()
+        for field, value in data.items():
+            if field in ["username", "first_name", "last_name"]:
+                user_data[field] = value
+
+        data["user"] = user_data
+        return super().to_internal_value(data)
+
+    def to_representation(self, instance):
+        resp = super().to_representation(instance)
+        user = resp.pop("user")
+        response = OrderedDict(user)
+        response.update(resp)
+        return response
 
 
 class NotificationSerializer(serializers.ModelSerializer):

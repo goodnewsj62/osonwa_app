@@ -1,7 +1,6 @@
-from bs4 import Tag
 from rest_framework import serializers
 
-from blog.models import Bundle, Post
+from blog.models import Bundle, Post, Tags
 
 
 class PostSerializer(serializers.ModelSerializer):
@@ -20,6 +19,6 @@ class BundleSerializer(serializers.ModelSerializer):
 
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Tag
+        model = Tags
         fields = "__all__"
         extra_kwargs = {}
