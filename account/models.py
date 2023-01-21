@@ -1,3 +1,4 @@
+from uuid import uuid4
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 
@@ -152,3 +153,8 @@ class Interest(models.Model):
 
     def __str__(self) -> str:
         return f"{self.name}"
+
+
+class TokenStore(models.Model):
+    identifier = models.UUIDField(default=uuid4, editable=False)
+    token = models.TextField()

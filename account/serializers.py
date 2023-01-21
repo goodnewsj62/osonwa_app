@@ -16,6 +16,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
+    interests = serializers.StringRelatedField(source="user.interests")
     user = UserSerializer(many=False, required=False)
 
     class Meta:
@@ -183,3 +184,20 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         # tokens["type"] = "login"
 
         return tokens
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    password = serializers.CharField(required=True, allow_null=False, allow_blank=False)
+    email = serializers.EmailField(required=True, allow_null=False, allow_blank=False)
+
+    def validate_password(self, password):
+        if len(password) < 8:
+            raise serializers.ValidationError("must exceed 7 characters")
+
+    def create(self, validated_data):
+        email = validated_data.pop("email")
+        password = validated_data.pop("password")
+        user = User.objects.get(email=email)
+        user.set_password(password)
+        user.save()
+        return user

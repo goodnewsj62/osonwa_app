@@ -1,3 +1,5 @@
+from datetime import datetime, timezone as tz
+
 from django.urls import reverse
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
@@ -9,9 +11,15 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from account.models import Notification, Profile, User, Interest
 from utils.permissions import IsUserAccount, LockOut
 from osonwa.helpers import get_auth_token
-from account.helpers import create_social_account
+from account.helpers import (
+    create_social_account,
+    shorten_token,
+    extract_data_from_token,
+)
 from osonwa.decorators import ensure_atomic
+from utils.gen_helpers import generate_jwt_token
 from account.oauth import TwitterHelper
+from account.tasks import send_email
 from account.serializers import (
     NotificationSerializer,
     ProfileSerializer,
@@ -22,6 +30,7 @@ from account.serializers import (
     TwitterSignupSerializer,
     FacebookSerializer,
     FacebookSignUpSerializer,
+    ChangePasswordSerializer,
 )
 
 # Create your views here.
@@ -178,7 +187,25 @@ class TwitterSignUpView(APIView):
 
 
 class PasswordChangeView(APIView):
-    pass
+    def get(self, request, format=None):
+        email = request.data.get("email")
+        user = get_object_or_404(User, email=email)
+
+        payload = {"user_id": user.id, "email": user.email}
+        token = generate_jwt_token(payload, exp=datetime.now(tz=tz.utc))
+        key = shorten_token(token)
+        send_email.delay(email, key)  # async function
+        return Response({"message": "success"})
+
+    def post(self, request, format=None):
+        data = extract_data_from_token(request.data)
+        if not data:
+            message = {"error": ["token expired or defective"]}
+            return Response(message, status=status.HTTP_400_BAD_REQUEST)
+        serializer = ChangePasswordSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"message": "success"})
 
 
 class AccountProfileView(viewsets.ModelViewSet):
