@@ -9,9 +9,16 @@ from .views import (
     TwitterSignUpView,
     FacebookLoginView,
     FaceBookSignupView,
+    PasswordChangeView,
+    AccountProfileView,
+    InterestsView,
 )
 
 app_name = "auth"
+
+profile_view = AccountProfileView.as_view(
+    {"put": "update", "patch": "partial_update", "get": "retrieve"}
+)
 
 urlpatterns = [
     path("google/", GoogleLoginView.as_view(), name="g_login"),
@@ -22,6 +29,9 @@ urlpatterns = [
     path("tw_signup/", TwitterSignUpView.as_view(), name="tw_signup"),
     path("verify/user/", verify_user_exists, name="verify"),
     path("verify/username/", UserNameExistsCheck.as_view(), name="valid_username"),
+    path("change-password/", PasswordChangeView.as_view(), name="password_change"),
+    path("interests/", InterestsView.as_view(), name="interests"),
+    path("profile/<str:username>/", profile_view, name="profile"),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

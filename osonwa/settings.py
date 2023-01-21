@@ -156,6 +156,14 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+# Email Settings
+EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
+EMAIL_HOST = os.getenv("HOST")
+EMAIL_PORT = os.getenv("PORT")
+EMAIL_HOST_USER = os.getenv("USER")
+EMAIL_HOST_PASSWORD = os.getenv("PASSWORD")
+EMAIL_USE_SSL = True
+
 # Rest framework
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [

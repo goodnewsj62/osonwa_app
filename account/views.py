@@ -31,6 +31,7 @@ from account.serializers import (
     FacebookSerializer,
     FacebookSignUpSerializer,
     ChangePasswordSerializer,
+    InterestSerializer,
 )
 
 # Create your views here.
@@ -231,18 +232,49 @@ class AccountProfileView(viewsets.ModelViewSet):
         return [perm() for perm in perm_classes]
 
 
-@api_view(["delete"])
-def remove_interests(request, *args, **kwargs):
-    interest = request.data.get("interest")
-    if not interest:
-        message = {"error": ["interest  field is required"]}
-        return Response(message, status=status.HTTP_400_BAD_REQUEST)
+class InterestsView(APIView):
+    def post(self, request, format=None):
+        interest = request.data.get("interest")
 
-    interest = Interest.objects.filter(name=interest).first()
+        if not isinstance(interest, list):
+            message = {"error": ["interests should be an array"]}
+            return Response(message, status=status.HTTP_400_BAD_REQUEST)
 
-    if not interest:
-        message = {"error": ["no such interest exists"]}
-        return Response(message, status=status.HTTP_400_BAD_REQUEST)
+        interests = Interest.objects.filter(name__in=interest).all()
+        user = request.user
+        user.interests.add(**interests)
+        data = InterestSerializer(instance=user.interests, many=True).data
+        return Response(data)
 
-    interest.users.remove(request.user)
-    return Response({"message": "success"})
+    def patch(self, request, format=None):
+        interest = request.data.get("interest")
+
+        obj = self.validate_interest(interest)
+        if isinstance(obj, Response):
+            return obj
+
+        obj.users.add(request.user)
+        return Response({"message": interest.name})
+
+    def delete(self, request, format=None):
+        interest = request.data.get("interest")
+
+        obj = self.validate_interest(interest)
+        if isinstance(obj, Response):
+            return obj
+
+        obj.users.remove(request.user)
+        return Response({"message": "success"})
+
+    def validate_interest(self, interest):
+        if not interest:
+            message = {"error": ["interest  field is required"]}
+            return Response(message, status=status.HTTP_400_BAD_REQUEST)
+
+        interest = Interest.objects.filter(name=interest).first()
+
+        if not interest:
+            message = {"error": ["no such interest exists"]}
+            return Response(message, status=status.HTTP_400_BAD_REQUEST)
+
+        return interest
