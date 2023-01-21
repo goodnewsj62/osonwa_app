@@ -25,4 +25,4 @@ class PermitSafeAccess(BasePermission):
         if request.method in SAFE_METHODS:
             return True
 
-        return request.user and request.user.is_active
+        return request.user and request.user.is_authenticated and request.user.is_active
