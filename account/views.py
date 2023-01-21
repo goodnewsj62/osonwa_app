@@ -9,7 +9,7 @@ from rest_framework.decorators import action, api_view, APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from account.models import Notification, Profile, User, Interest
-from utils.permissions import IsUserAccount, LockOut
+from utils.permissions import IsUserAccount, LockOut, PermitSafeAccess
 from osonwa.helpers import get_auth_token
 from account.helpers import (
     create_social_account,
@@ -237,7 +237,12 @@ class AccountProfileView(viewsets.ModelViewSet):
 
 
 class InterestsView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [PermitSafeAccess]
+
+    def get(self, request, format=None):
+        instances = Interest.objects.all()
+        serializer = InterestSerializer(instance=instances, many=True)
+        return Response(serializer.data)
 
     def post(self, request, format=None):
         interest = request.data.get("interests")
