@@ -1,6 +1,6 @@
 import pytest
 
-from account.models import Notification, User
+from account.models import Notification, User, Interest
 
 
 @pytest.fixture
@@ -44,3 +44,16 @@ def create_notification(db, test_user_one, test_user_two):
         post_url="https://osonwa.com/blogs/username/idkoprt",
         backend_url="https://osonwa/bla",
     )
+
+
+@pytest.fixture
+def create_interests(db):
+    def _create(name):
+        return Interest.objects.create(name=name)
+
+    return _create
+
+
+@pytest.fixture
+def python_interest(create_interests):
+    return create_interests("python")

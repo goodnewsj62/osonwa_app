@@ -12,6 +12,7 @@ from .views import (
     PasswordChangeView,
     AccountProfileView,
     InterestsView,
+    InterestsDetailView,
 )
 
 app_name = "auth"
@@ -31,6 +32,7 @@ urlpatterns = [
     path("verify/username/", UserNameExistsCheck.as_view(), name="valid_username"),
     path("change-password/", PasswordChangeView.as_view(), name="password_change"),
     path("interests/", InterestsView.as_view(), name="interests"),
+    path("interests/<str:username>/", InterestsDetailView.as_view(), name="d_interest"),
     path("profile/<str:username>/", profile_view, name="profile"),
 ]
 

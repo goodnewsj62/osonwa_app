@@ -16,7 +16,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    interests = serializers.StringRelatedField(source="user.interests")
+    interests = serializers.StringRelatedField(source="user.interests", many=True)
     user = UserSerializer(many=False, required=False)
 
     class Meta:
@@ -201,3 +201,7 @@ class ChangePasswordSerializer(serializers.Serializer):
         user.set_password(password)
         user.save()
         return user
+
+
+class InterestSerializer(serializers.Serializer):
+    name = serializers.CharField()

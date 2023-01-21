@@ -214,8 +214,10 @@ class AccountProfileView(viewsets.ModelViewSet):
         "user__interests"
     )
     permission_classes = [IsUserAccount]
-    serializer_class = ProfileSerializer
     lookup_field = "username"
+
+    def get_serializer(self, *args, **kwargs):
+        return ProfileSerializer(*args, **kwargs, context={"request": self.request})
 
     def get_object(self):
         queryset = self.get_queryset()
@@ -229,12 +231,16 @@ class AccountProfileView(viewsets.ModelViewSet):
         perm_classes = self.permission_classes
         if self.action in ["list", "create"]:
             return [LockOut()]
+        elif self.action in ["partial_update", "update"]:
+            perm_classes = [permissions.IsAuthenticated, *perm_classes]
         return [perm() for perm in perm_classes]
 
 
 class InterestsView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
     def post(self, request, format=None):
-        interest = request.data.get("interest")
+        interest = request.data.get("interests")
 
         if not isinstance(interest, list):
             message = {"error": ["interests should be an array"]}
@@ -242,31 +248,41 @@ class InterestsView(APIView):
 
         interests = Interest.objects.filter(name__in=interest).all()
         user = request.user
-        user.interests.add(**interests)
+        user.interests.add(*interests)
         data = InterestSerializer(instance=user.interests, many=True).data
         return Response(data)
 
-    def patch(self, request, format=None):
-        interest = request.data.get("interest")
 
-        obj = self.validate_interest(interest)
+class InterestsDetailView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def patch(self, request, *args, **kwargs):
+        interest = request.data.get("interest")
+        username = kwargs.get("username")
+
+        obj = self.validate_interest(interest, username)
         if isinstance(obj, Response):
             return obj
 
         obj.users.add(request.user)
-        return Response({"message": interest.name})
+        return Response({"message": obj.name})
 
-    def delete(self, request, format=None):
+    def delete(self, request, *args, **kwargs):
         interest = request.data.get("interest")
+        username = kwargs.get("username")
 
-        obj = self.validate_interest(interest)
+        obj = self.validate_interest(interest, username)
         if isinstance(obj, Response):
             return obj
 
         obj.users.remove(request.user)
         return Response({"message": "success"})
 
-    def validate_interest(self, interest):
+    def validate_interest(self, interest, username):
+        if self.request.user.username != username:
+            message = {"error": ["you are not authorized to perform this action"]}
+            return Response(message, status=status.HTTP_403_FORBIDDEN)
+
         if not interest:
             message = {"error": ["interest  field is required"]}
             return Response(message, status=status.HTTP_400_BAD_REQUEST)

@@ -14,7 +14,7 @@ class LockOut(BasePermission):
 
 class IsUserAccount(BasePermission):
     def has_object_permission(self, request, view, obj):
-        if request.methos in SAFE_METHODS:
+        if request.method in SAFE_METHODS:
             return True
 
         return obj == request.user
