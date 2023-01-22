@@ -82,7 +82,7 @@ def test_interest_delete(test_user_one, python_interest):
     client.force_authenticate(test_user_one)
     url = reverse("auth:d_interest", kwargs={"username": test_user_one.username})
 
-    response = client.delete(url, data={"interest": python_interest.name})
+    response = client.delete(url, data={"interest": [python_interest.name]})
     test_user_one.refresh_from_db()
 
     assert response.status_code == 200
@@ -94,7 +94,7 @@ def test_interest_patch(test_user_one, python_interest):
     client.force_authenticate(test_user_one)
     url = reverse("auth:d_interest", kwargs={"username": test_user_one.username})
 
-    response = client.patch(url, data={"interest": python_interest.name})
+    response = client.patch(url, data={"interest": [python_interest.name]})
     test_user_one.refresh_from_db()
 
     assert response.status_code == 200

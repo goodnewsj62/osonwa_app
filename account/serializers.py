@@ -204,4 +204,5 @@ class ChangePasswordSerializer(serializers.Serializer):
 
 
 class InterestSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
     name = serializers.CharField()

@@ -269,33 +269,35 @@ class InterestsDetailView(APIView):
         if isinstance(obj, Response):
             return obj
 
-        obj.users.add(request.user)
-        return Response({"message": obj.name})
+        user = request.user
+        user.interests.add(*obj)
+        return Response({"message": "success"})
 
     def delete(self, request, *args, **kwargs):
-        interest = request.data.get("interest")
+        interests = request.data.get("interest")
         username = kwargs.get("username")
 
-        obj = self.validate_interest(interest, username)
+        obj = self.validate_interest(interests, username)
         if isinstance(obj, Response):
             return obj
 
-        obj.users.remove(request.user)
+        user = request.user
+        user.interests.remove(*obj)
         return Response({"message": "success"})
 
-    def validate_interest(self, interest, username):
+    def validate_interest(self, interests, username):
         if self.request.user.username != username:
             message = {"error": ["you are not authorized to perform this action"]}
             return Response(message, status=status.HTTP_403_FORBIDDEN)
 
-        if not interest:
-            message = {"error": ["interest  field is required"]}
+        if not isinstance(interests, list):
+            message = {"error": ["interest  field is an array of interests"]}
             return Response(message, status=status.HTTP_400_BAD_REQUEST)
 
-        interest = Interest.objects.filter(name=interest).first()
+        interests = Interest.objects.filter(name__in=interests).all()
 
-        if not interest:
+        if not interests:
             message = {"error": ["no such interest exists"]}
             return Response(message, status=status.HTTP_400_BAD_REQUEST)
 
-        return interest
+        return interests
