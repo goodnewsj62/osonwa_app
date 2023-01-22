@@ -229,11 +229,17 @@ class AccountProfileView(viewsets.ModelViewSet):
 
     def get_permissions(self):
         perm_classes = self.permission_classes
-        if self.action in ["list", "create"]:
+        if self.action == "create":
             return [LockOut()]
+        elif self.action == "list":
+            perm_classes = [permissions.IsAuthenticated]
         elif self.action in ["partial_update", "update"]:
             perm_classes = [permissions.IsAuthenticated, *perm_classes]
         return [perm() for perm in perm_classes]
+
+    def list(self, request, *args, **kwargs):
+        serializer = self.get_serializer(instance=request.user.profile)
+        return Response(serializer.data)
 
 
 class InterestsView(APIView):

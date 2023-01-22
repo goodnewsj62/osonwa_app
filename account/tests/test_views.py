@@ -12,9 +12,18 @@ def test_username_exists_view(test_user_one):
     assert invalid_response.data.get("status") == False
 
 
-def test_account_profile_view(test_user_one):
+def test_account_profile_detail(test_user_one):
     client = APIClient()
     url = reverse("auth:profile", kwargs={"username": test_user_one.username})
+    response = client.get(url)
+    assert response.status_code == 200
+    assert response.data.get("email") == test_user_one.email
+
+
+def test_account_profile(test_user_one):
+    client = APIClient()
+    client.force_authenticate(test_user_one)
+    url = reverse("auth:auth_user_profile")
     response = client.get(url)
     assert response.status_code == 200
     assert response.data.get("email") == test_user_one.email

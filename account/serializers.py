@@ -11,7 +11,13 @@ from utils.gen_helpers import setattr_if_exists
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = "__all__"
+        exclude = [
+            "is_staff",
+            "is_superuser",
+            "groups",
+            "user_permissions",
+            "last_login",
+        ]
         extra_kwargs = {"password": {"write_only": True, "required": False}}
 
 

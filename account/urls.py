@@ -17,6 +17,7 @@ from .views import (
 
 app_name = "auth"
 
+profile = AccountProfileView.as_view({"get": "list"})
 profile_view = AccountProfileView.as_view(
     {"put": "update", "patch": "partial_update", "get": "retrieve"}
 )
@@ -33,6 +34,7 @@ urlpatterns = [
     path("change-password/", PasswordChangeView.as_view(), name="password_change"),
     path("interests/", InterestsView.as_view(), name="interests"),
     path("interests/<str:username>/", InterestsDetailView.as_view(), name="d_interest"),
+    path("profile/", profile, name="auth_user_profile"),
     path("profile/<str:username>/", profile_view, name="profile"),
 ]
 
