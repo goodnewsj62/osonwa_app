@@ -78,7 +78,7 @@ class Profile(models.Model):
         related_name="profile",
         related_query_name="profile",
     )
-    bio = models.CharField(max_length=500, blank=True, null=False)
+    bio = models.CharField(max_length=200, blank=True, null=False)
     image = models.ImageField(upload_to="images/profile/", default="images/default.jpg")
     twitter_url = models.TextField(null=True, blank=False)
     facebook_url = models.TextField(null=True, blank=False)
