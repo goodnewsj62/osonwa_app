@@ -189,7 +189,7 @@ class TwitterSignUpView(APIView):
 
 class PasswordChangeView(APIView):
     def get(self, request, format=None):
-        email = request.data.get("email")
+        email = request.query_params.get("email")
         user = get_object_or_404(User, email=email)
 
         payload = {"user_id": user.id, "email": user.email}

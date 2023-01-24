@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from django.http import QueryDict
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
@@ -57,7 +58,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         for field, value in data.items():
             if field in ["username", "first_name", "last_name"]:
                 user_data[field] = value
-
+        data = data.copy() if isinstance(data, QueryDict) else data
         data["user"] = user_data
         return super().to_internal_value(data)
 
