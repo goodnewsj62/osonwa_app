@@ -1,10 +1,10 @@
-from uuid import uuid4
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 
 from account.custom_manger import UserManager
 from osonwa.general_models import Saved
 from osonwa.helpers import inmemory_wrapper
+from utils.gen_helpers import base64_encoded_uuid
 
 # Create your models here.
 class User(AbstractBaseUser, PermissionsMixin):
@@ -157,5 +157,7 @@ class Interest(models.Model):
 
 
 class TokenStore(models.Model):
-    identifier = models.UUIDField(default=uuid4, editable=False)
+    identifier = models.CharField(
+        max_length=100, default=base64_encoded_uuid, editable=False
+    )
     token = models.TextField()

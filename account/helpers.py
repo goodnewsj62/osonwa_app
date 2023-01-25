@@ -1,4 +1,5 @@
 from collections import OrderedDict
+
 from django.shortcuts import get_object_or_404
 from osonwa.helpers import create_random_word
 from django.contrib.auth import get_user_model
@@ -30,8 +31,8 @@ def shorten_token(token):
 
 def extract_data_from_token(data):
     resp = OrderedDict()
-    store_obj = get_object_or_404(TokenStore, token=data.get("token"))
-    status, payload = decode_jwt_token(store_obj.identifier)
+    store_obj = get_object_or_404(TokenStore, identifier=data.get("token"))
+    status, payload = decode_jwt_token(store_obj.token)
     if not status:
         return {}
     resp["email"] = payload.get("email")

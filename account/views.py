@@ -1,4 +1,5 @@
-from datetime import datetime, timezone as tz
+from datetime import datetime, timezone as tz, timedelta
+from urllib.parse import unquote
 
 from django.urls import reverse
 from django.shortcuts import get_object_or_404
@@ -190,10 +191,12 @@ class TwitterSignUpView(APIView):
 class PasswordChangeView(APIView):
     def get(self, request, format=None):
         email = request.query_params.get("email")
+        email = unquote(email)
         user = get_object_or_404(User, email=email)
 
         payload = {"user_id": user.id, "email": user.email}
-        token = generate_jwt_token(payload, exp=datetime.now(tz=tz.utc))
+        exp = datetime.now(tz=tz.utc) + timedelta(days=1)
+        token = generate_jwt_token(payload, exp=exp)
         key = shorten_token(token)
         send_email.delay(email, key)  # async function
         return Response({"message": "success"})

@@ -1,4 +1,7 @@
 import os
+import base64
+from uuid import uuid4
+
 import jwt
 from dotenv import load_dotenv, find_dotenv
 
@@ -24,7 +27,13 @@ def generate_jwt_token(payload: dict, exp):
 def decode_jwt_token(token):
     try:
         secret = os.getenv("SECRET_KEY")
-        result = jwt.decode(token, secret, algorithm="HS256")
+        result = jwt.decode(token, secret, algorithms=["HS256"])
         return True, result
     except Exception as e:
+        print(e)
         return False, {}
+
+
+def base64_encoded_uuid():
+    bs64_str = base64.urlsafe_b64encode(str(uuid4()).encode()).decode("utf-8")
+    return bs64_str[:10]

@@ -200,6 +200,7 @@ class ChangePasswordSerializer(serializers.Serializer):
     def validate_password(self, password):
         if len(password) < 8:
             raise serializers.ValidationError("must exceed 7 characters")
+        return password
 
     def create(self, validated_data):
         email = validated_data.pop("email")
