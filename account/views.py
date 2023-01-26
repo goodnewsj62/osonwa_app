@@ -280,7 +280,10 @@ class InterestsDetailView(APIView):
 
         user = request.user
         user.interests.add(*obj)
-        return Response({"message": "success"})
+        user.refresh_from_db()
+
+        serializer = InterestSerializer(instance=user.interests, many=True)
+        return Response(serializer.data)
 
     def delete(self, request, *args, **kwargs):
         interests = request.data.get("interest")
@@ -292,7 +295,10 @@ class InterestsDetailView(APIView):
 
         user = request.user
         user.interests.remove(*obj)
-        return Response({"message": "success"})
+        user.refresh_from_db()
+
+        serializer = InterestSerializer(instance=user.interests, many=True)
+        return Response(serializer.data)
 
     def validate_interest(self, interests, username):
         if self.request.user.username != username:
@@ -304,9 +310,5 @@ class InterestsDetailView(APIView):
             return Response(message, status=status.HTTP_400_BAD_REQUEST)
 
         interests = Interest.objects.filter(name__in=interests).all()
-
-        if not interests:
-            message = {"error": ["no such interest exists"]}
-            return Response(message, status=status.HTTP_400_BAD_REQUEST)
 
         return interests

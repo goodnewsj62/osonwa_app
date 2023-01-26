@@ -34,6 +34,7 @@ class Post(models.Model):
     )
     date_published = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(default=timezone.now)
+    like = models.BigIntegerField(default=0)
     content = QuillField()
     author = models.ForeignKey(
         "account.User",
@@ -50,7 +51,8 @@ class Post(models.Model):
         related_query_name="posts",
     )
 
-    order = models.IntegerField()
+    order = models.IntegerField(null=True)  # for bundle
+    approved = models.BooleanField(default=True)
 
     class Meta:
         verbose_name = "post"
@@ -64,7 +66,6 @@ class Post(models.Model):
         return f"<{self.title}>"
 
     def save(self, *args, **kwargs) -> None:
-
         self.post_id = self.create_post_id(self.post_id)
         self.slug_title = slugify(self.title)
         self.cover_image = inmemory_wrapper(self.cover_image, "/images/blogdefault.jpg")
@@ -75,6 +76,9 @@ class Post(models.Model):
         if not post_id:
             return generate_b64_uuid_string()[:7]
         return post_id
+
+    def get_absolute_ur(self):
+        pass
 
 
 class PostImages(models.Model):
