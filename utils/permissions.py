@@ -20,6 +20,15 @@ class IsUserAccount(BasePermission):
         return obj == request.user
 
 
+class IsOwner(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        attrs = ["author", "created_by", "user"]
+        for attr in attrs:
+            if hasattr(obj, attr):
+                return request.user == getattr(obj, attr)
+        return False
+
+
 class PermitSafeAccess(BasePermission):
     def has_permission(self, request, view):
         if request.method in SAFE_METHODS:

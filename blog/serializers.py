@@ -12,7 +12,7 @@ class BundleSerializer(serializers.ModelSerializer):
         extra_kwargs = {}
 
 
-class TagSerializer(serializers.ModelSerializer):
+class CustomTagSerializer(serializers.ModelSerializer):
     posts = None
 
     class Meta:
@@ -22,8 +22,9 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class PostSerializer(serializers.ModelSerializer):
-    tags = TagSerializer(many=True, required=False)
+    tags = CustomTagSerializer(many=True, required=False)
     author = UserSerializer(required=False)
+    likes = serializers.SerializerMethodField("get_likes_count")
     bundle_name = serializers.StringRelatedField(source="bundle.topic")
 
     class Meta:
@@ -33,15 +34,28 @@ class PostSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         order = attrs.get("order")
-        post_with_order = Bundle.objects.filter(posts__order=order).exists()
+        bun_id = attrs.get("bundle")
+        post_with_order = Bundle.objects.filter(id=bun_id, posts__order=order).exists()
         if order and post_with_order:
             raise serializers.ValidationError(
                 "There is a post having this order number"
             )
         return super().validate(attrs)
 
+    def get_likes_count(self, instance):
+        return instance.likes.count()
+
 
 class ImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = PostImages
         fields = "__all__"
+
+
+class TagSerializer(serializers.ModelSerializer):
+    posts = PostSerializer(many=True)
+
+    class Meta:
+        model = Tags
+        fields = "__all__"
+        extra_kwargs = {}

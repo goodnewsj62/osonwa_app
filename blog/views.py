@@ -1,28 +1,65 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status, permissions
 from rest_framework.response import Response
-from rest_framework.decorators import action, api_view, APIView
+from rest_framework.decorators import action, api_view
 from django.db.models import Prefetch
 
-from blog.models import Post
-from blog.serializers import PostSerializer
+from utils.permissions import LockOut, IsOwner
+from .models import Post, Bundle, Tags, PostImages
+from .serializers import PostSerializer, BundleSerializer
 
 # Create your views here.
 
 
-class PostViewSet(APIView):
+class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.select_related("bundle", "author").prefetch_related(
-        Prefetch("tags")
+        Prefetch("tags"), Prefetch("likes")
     )
-    lookup_field = ["slug", "post_id"]
+    lookup_field = ["slug_title", "post_id"]
     serializer_class = PostSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsOwner]
 
-    # implement patch, post and put
+    def get_permissions(self):
+        permissions_classes = self.permission_classes
+        if self.action == "list":
+            return [LockOut()]
+        return [perm() for perm in permissions_classes]
+
+    def get_object(self):
+        query_set = self.get_queryset()
+        filters = {}
+        for field in self.lookup_field:
+            filters[field] = self.kwargs[field]
+        obj = get_object_or_404(query_set, **filters)
+        self.check_object_permissions(self.request, obj)
+        return obj
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(author=request.data)
+        return Response(serializer.data)
 
 
 class PostBundleViewSet(viewsets.ModelViewSet):
+    serializer_class = BundleSerializer
+    permission_classes = [permissions.IsAuthenticated, IsOwner]
 
-    pass
+    def get_permissions(self):
+        permissions_classes = self.permission_classes
+        if self.request.action == "list":
+            return [permissions.AllowAny()]
+        return [perm() for perm in permissions_classes]
+
+    def get_queryset(self):
+        query_set = Bundle.objects.select_related("created_by")
+        if self.request.action in ["list"]:
+            return query_set
+        return query_set.filter(created_by=self.request.user)
+
+    @action(detail=False, url_name="my_bundles", url_path="my-bundles")
+    def my_bundles(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
 
 
 class PostReaction(viewsets.ModelViewSet):

@@ -20,6 +20,12 @@ class Bundle(models.Model):
         validators=[FileExtensionValidator(allowed_extensions=["jpeg", "jpg", "webp"])],
         null=True,
     )
+    created_by = models.ForeignKey(
+        "account.User",
+        related_name="bundles",
+        related_query_name="bundle",
+        on_delete=models.CASCADE,
+    )
 
 
 # -tags
@@ -34,7 +40,6 @@ class Post(models.Model):
     )
     date_published = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(default=timezone.now)
-    like = models.BigIntegerField(default=0)
     content = QuillField()
     author = models.ForeignKey(
         "account.User",
@@ -119,6 +124,22 @@ class Tags(models.Model):
 
     def __str__(self) -> str:
         return self.tag_name
+
+
+class PostLike(models.Model):
+    post = models.ForeignKey(
+        "blog.Post",
+        on_delete=models.CASCADE,
+        related_name="likes",
+        related_query_name="like",
+    )
+
+    user = models.ForeignKey(
+        "account.User",
+        on_delete=models.CASCADE,
+        related_name="liked_articles",
+        related_query_name="liked_article",
+    )
 
 
 class PostUserReactions(UserReaction):
