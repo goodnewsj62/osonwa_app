@@ -8,11 +8,18 @@ from .views import PostBundleViewSet, PostViewSet, TagViewSet
 app_name = "blog"
 
 router = SimpleRouter()
-router.register("post", PostViewSet, basename="post")
 router.register("bundle", PostBundleViewSet, basename="bundle")
 router.register("tag", PostBundleViewSet, basename="tag")
 
-urlpatterns = []
+post_list = PostViewSet.as_view({"get": "list", "post": "create"})
+post_detail = PostViewSet.as_view(
+    {"get": "retrieve", "put": "update", "patch": "partial_update"}
+)
+
+urlpatterns = [
+    path("post/", post_list, name="post-list"),
+    path("post/<str:slug_title>/<str:post_id>/", post_detail, name="post-detail"),
+]
 
 urlpatterns += router.urls
 urlpatterns = format_suffix_patterns(urlpatterns)

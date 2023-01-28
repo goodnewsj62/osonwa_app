@@ -45,6 +45,11 @@ class PostSerializer(serializers.ModelSerializer):
     def get_likes_count(self, instance):
         return instance.likes.count()
 
+    def to_representation(self, instance):
+        resp = super().to_representation(instance)
+        resp["content"] = instance.content.delta
+        return resp
+
 
 class ImageSerializer(serializers.ModelSerializer):
     class Meta:

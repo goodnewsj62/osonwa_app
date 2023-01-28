@@ -34,11 +34,8 @@ class PostViewSet(viewsets.ModelViewSet):
         self.check_object_permissions(self.request, obj)
         return obj
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(author=request.data)
-        return Response(serializer.data)
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
 
 class PostBundleViewSet(viewsets.ModelViewSet):

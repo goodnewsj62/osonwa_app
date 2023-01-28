@@ -26,6 +26,7 @@ urlpatterns = [
     path("authenticate/", CustomTokenObtainPairView.as_view(), name="token"),
     path("refresh/", TokenRefreshView.as_view(), name="refresh"),
     path("auth/", include("account.urls")),
+    path("blog/", include("blog.urls")),
 ]
 
 urlpatterns = urlpatterns + static(

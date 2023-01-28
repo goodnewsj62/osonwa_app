@@ -19,6 +19,7 @@ class BundleFactory(factory.django.DjangoModelFactory):
     poster = factory.django.ImageField(
         from_path=settings.BASE_DIR / "test_media" / "wallpaper.jpg"
     )
+    created_by = factory.SubFactory("account.factories.UserFactory")
 
 
 class PostFactory(factory.django.DjangoModelFactory):
