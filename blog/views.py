@@ -6,7 +6,7 @@ from django.db.models import Prefetch
 
 from utils.permissions import LockOut, IsOwner
 from .models import Post, Bundle, Tags, PostImages
-from .serializers import PostSerializer, BundleSerializer
+from .serializers import PostSerializer, BundleSerializer, TagSerializer
 
 # Create your views here.
 
@@ -47,13 +47,13 @@ class PostBundleViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         permissions_classes = self.permission_classes
-        if self.request.action == "list":
+        if self.action == "list":
             return [permissions.AllowAny()]
         return [perm() for perm in permissions_classes]
 
     def get_queryset(self):
         query_set = Bundle.objects.select_related("created_by")
-        if self.request.action in ["list"]:
+        if self.action in ["list"]:
             return query_set
         return query_set.filter(created_by=self.request.user)
 
@@ -67,4 +67,12 @@ class PostReaction(viewsets.ModelViewSet):
 
 
 class TagViewSet(viewsets.ModelViewSet):
-    pass
+    queryset = Tags.objects.prefetch_related("posts")
+    serializer_class = TagSerializer
+
+    def get_permissions(self):
+        if self.action in ["patial_update", "update"]:
+            return [LockOut()]
+        elif self.action in ["list", "retrieve"]:
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]

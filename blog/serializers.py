@@ -53,7 +53,7 @@ class ImageSerializer(serializers.ModelSerializer):
 
 
 class TagSerializer(serializers.ModelSerializer):
-    posts = PostSerializer(many=True)
+    posts = PostSerializer(many=True, required=False)
 
     class Meta:
         model = Tags
