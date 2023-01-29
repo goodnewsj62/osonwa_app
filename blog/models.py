@@ -1,6 +1,7 @@
 from uuid import uuid4
 
 from django.db import models
+from django.urls import reverse
 from django.utils import timezone
 from django_quill.fields import QuillField
 from django.template.defaultfilters import slugify
@@ -83,7 +84,10 @@ class Post(models.Model):
         return post_id
 
     def get_absolute_ur(self):
-        pass
+        return reverse(
+            "blog:post-detail",
+            kwargs={"post_id": self.post_id, "slug_title": self.slug_title},
+        )
 
 
 class PostImages(models.Model):

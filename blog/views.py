@@ -23,6 +23,8 @@ class PostViewSet(viewsets.ModelViewSet):
         permissions_classes = self.permission_classes
         if self.action == "list":
             return [LockOut()]
+        elif self.action == "retrieve":
+            return [permissions.AllowAny()]
         return [perm() for perm in permissions_classes]
 
     def get_object(self):

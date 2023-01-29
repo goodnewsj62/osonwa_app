@@ -1,5 +1,6 @@
 import factory
 from django.conf import settings
+import json
 
 from factories import ReactionFactory
 
@@ -35,6 +36,9 @@ class PostFactory(factory.django.DjangoModelFactory):
     bundle = factory.SubFactory(BundleFactory)
     random_num = factory.Faker("random_digit")
     order = factory.LazyAttribute(lambda o: o.random_num + 1 if o.bundle else None)
+    content = json.dumps(
+        {"delta": {"ops": [{"insert": "so here we go\n"}]}, "html": ""}
+    )
 
 
 class PostImagesFactory(factory.django.DjangoModelFactory):
