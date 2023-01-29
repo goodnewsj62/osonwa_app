@@ -9,11 +9,11 @@ class BundleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Bundle
         fields = "__all__"
-        extra_kwargs = {}
+        extra_kwargs = {"created_by": {"required": False}}
 
 
 class CustomTagSerializer(serializers.ModelSerializer):
-    posts = None
+    post = None
 
     class Meta:
         model = Tags
@@ -33,13 +33,11 @@ class PostSerializer(serializers.ModelSerializer):
         extra_kwargs = {"author": {"required": False}}
 
     def validate(self, attrs):
-        order = attrs.get("order")
-        bun_id = attrs.get("bundle")
-        post_with_order = Bundle.objects.filter(id=bun_id, posts__order=order).exists()
-        if order and post_with_order:
-            raise serializers.ValidationError(
-                "There is a post having this order number"
-            )
+        request = self.context.get("request")
+
+        if request.method.lower() in ["put", "patch"]:
+            self.validate_bundle_order()
+
         return super().validate(attrs)
 
     def get_likes_count(self, instance):
@@ -50,6 +48,26 @@ class PostSerializer(serializers.ModelSerializer):
         resp["content"] = instance.content.delta
         return resp
 
+    def validate_bundle(self, value):
+        if not value.created_by == self.context.get("request").user:
+            raise serializers.ValidationError("can only add to a bundle you created")
+        return value
+
+    def validate_bundle_order(self):
+        order = self.initial_data.get("order")
+        bundle_id = self.initial_data.get("bundle")
+        bundle = Bundle.objects.prefetch_related("posts").filter(id=bundle_id)
+        post_id = self.context.get("post_id")
+
+        if Post.objects.get(post_id=post_id).bundle == bundle.first():
+            # case when user did not change the bundle
+            return
+
+        order_exists = bundle.filter(posts__order=order).exists()
+        if order and order_exists:
+            message = "An article with this order number exists. Please change the order and retry"
+            raise serializers.ValidationError(message)
+
 
 class ImageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -58,9 +76,9 @@ class ImageSerializer(serializers.ModelSerializer):
 
 
 class TagSerializer(serializers.ModelSerializer):
-    posts = PostSerializer(many=True, required=False)
+    post = PostSerializer(many=True, required=False)
 
     class Meta:
         model = Tags
-        fields = "__all__"
+        fields = ["tag_name", "post"]
         extra_kwargs = {}

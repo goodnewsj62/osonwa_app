@@ -16,7 +16,6 @@ class PostViewSet(viewsets.ModelViewSet):
         Prefetch("tags"), Prefetch("likes")
     )
     lookup_field = ["slug_title", "post_id"]
-    serializer_class = PostSerializer
     permission_classes = [permissions.IsAuthenticated, IsOwner]
 
     def get_permissions(self):
@@ -26,6 +25,10 @@ class PostViewSet(viewsets.ModelViewSet):
         elif self.action == "retrieve":
             return [permissions.AllowAny()]
         return [perm() for perm in permissions_classes]
+
+    def get_serializer(self, *args, **kwargs):
+        ctx = {"post_id": self.kwargs.get("post_id"), "request": self.request}
+        return PostSerializer(*args, **kwargs, context=ctx)
 
     def get_object(self):
         query_set = self.get_queryset()
@@ -46,7 +49,7 @@ class PostBundleViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         permissions_classes = self.permission_classes
-        if self.action == "list":
+        if self.action in ["list", "create"]:
             return [permissions.AllowAny()]
         return [perm() for perm in permissions_classes]
 
@@ -60,6 +63,12 @@ class PostBundleViewSet(viewsets.ModelViewSet):
     def my_bundles(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
 
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+    def perform_update(self, serializer):
+        return self.perform_create(serializer)
+
 
 class PostReaction(viewsets.ModelViewSet):
     pass
@@ -70,7 +79,7 @@ class TagViewSet(viewsets.ModelViewSet):
     serializer_class = TagSerializer
 
     def get_permissions(self):
-        if self.action in ["patial_update", "update"]:
+        if self.action in ["partial_update", "update"]:
             return [LockOut()]
         elif self.action in ["list", "retrieve"]:
             return [permissions.AllowAny()]

@@ -9,7 +9,7 @@ app_name = "blog"
 
 router = SimpleRouter()
 router.register("bundle", PostBundleViewSet, basename="bundle")
-router.register("tag", PostBundleViewSet, basename="tag")
+router.register("tag", TagViewSet, basename="tag")
 
 post_list = PostViewSet.as_view({"get": "list", "post": "create"})
 post_detail = PostViewSet.as_view(
