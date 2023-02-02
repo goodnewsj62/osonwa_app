@@ -186,3 +186,11 @@ def test_tag_update_restriction(db, user, tag_a):
 
     resp = client.patch(url, data={"tag_name": "faithful"})
     assert resp.status_code == 403
+
+
+def test_tag_search(db, tag_a):
+    client = APIClient()
+    url = reverse(f"blog:tag-search?kewoard={tag_a.tag_name[:5]}")
+
+    resp = client.get(url)
+    assert resp.status_code == 200

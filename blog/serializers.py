@@ -80,5 +80,5 @@ class TagSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Tags
-        fields = ["tag_name", "post"]
+        fields = ["id","tag_name", "post"]
         extra_kwargs = {}

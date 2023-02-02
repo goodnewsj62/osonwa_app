@@ -42,6 +42,7 @@ class Post(models.Model):
     date_published = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(default=timezone.now)
     content = QuillField()
+    text_content = models.TextField()
     author = models.ForeignKey(
         "account.User",
         null=False,

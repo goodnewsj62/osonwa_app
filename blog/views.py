@@ -81,6 +81,13 @@ class TagViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ["partial_update", "update"]:
             return [LockOut()]
-        elif self.action in ["list", "retrieve"]:
+        elif self.action in ["list", "retrieve", "search"]:
             return [permissions.AllowAny()]
         return [permissions.IsAuthenticated()]
+
+    @action(methods=["get"], detail=False, url_name="search", url_path="search")
+    def search(self, request, *args, **kwargs):
+        keyword = request.query_params.get("keyword")
+        queryset = self.get_queryset().filter(tag_name__like=keyword).all()[:15]
+        serializer = self.get_serializer(instance=queryset, many=True)
+        return Response(serializer.data)
