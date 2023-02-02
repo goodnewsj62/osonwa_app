@@ -87,7 +87,7 @@ class TagViewSet(viewsets.ModelViewSet):
 
     @action(methods=["get"], detail=False, url_name="search", url_path="search")
     def search(self, request, *args, **kwargs):
-        keyword = request.query_params.get("keyword")
-        queryset = self.get_queryset().filter(tag_name__like=keyword).all()[:15]
+        keyword = request.query_params.get("keyword", "")
+        queryset = self.get_queryset().filter(tag_name__icontains=keyword).all()[:15]
         serializer = self.get_serializer(instance=queryset, many=True)
         return Response(serializer.data)

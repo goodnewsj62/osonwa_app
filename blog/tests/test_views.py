@@ -190,7 +190,8 @@ def test_tag_update_restriction(db, user, tag_a):
 
 def test_tag_search(db, tag_a):
     client = APIClient()
-    url = reverse(f"blog:tag-search?kewoard={tag_a.tag_name[:5]}")
+    url = reverse("blog:tag-search") + f"?keyword={tag_a.tag_name[:5]}"
 
     resp = client.get(url)
     assert resp.status_code == 200
+    assert resp.data[0].get("tag_name") == tag_a.tag_name
