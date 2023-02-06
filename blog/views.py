@@ -63,6 +63,13 @@ class PostBundleViewSet(viewsets.ModelViewSet):
     def my_bundles(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
 
+    @action(detail=False, url_name="search", url_path="bundle-search")
+    def bundle_search(self, request, *args, **kwargs):
+        topic = request.query_params.get("topic")
+        instance = self.get_queryset().filter(topic__icontains=topic)
+        serializer = self.get_serializer(instance=instance, many=True)
+        return Response(serializer.data)
+
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
 

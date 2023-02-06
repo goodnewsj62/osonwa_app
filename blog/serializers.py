@@ -6,10 +6,15 @@ from account.serializers import UserSerializer
 
 
 class BundleSerializer(serializers.ModelSerializer):
+    taken_order_no = serializers.SerializerMethodField("get_all_order_no")
+
     class Meta:
         model = Bundle
         fields = "__all__"
         extra_kwargs = {"created_by": {"required": False}}
+
+    def get_all_order_no(self, instance):
+        return [post.order for post in instance.posts.all()]
 
 
 class CustomTagSerializer(serializers.ModelSerializer):
@@ -46,6 +51,7 @@ class PostSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         resp = super().to_representation(instance)
         resp["content"] = instance.content.delta
+        resp["html"] = instance.content.html
         return resp
 
     def validate_bundle(self, value):
@@ -80,5 +86,5 @@ class TagSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Tags
-        fields = ["id","tag_name", "post"]
+        fields = ["id", "tag_name", "post"]
         extra_kwargs = {}

@@ -195,3 +195,15 @@ def test_tag_search(db, tag_a):
     resp = client.get(url)
     assert resp.status_code == 200
     assert resp.data[0].get("tag_name") == tag_a.tag_name
+
+
+def test_bundle_search(db, bundle_a):
+    client = APIClient()
+    client.force_authenticate(bundle_a.created_by)
+
+    url = reverse("blog:bundle-search") + f"?topic={bundle_a.topic}"
+
+    resp = client.get(url)
+
+    assert resp.status_code == 200
+    assert resp.data[0].get("topic") == bundle_a.topic
