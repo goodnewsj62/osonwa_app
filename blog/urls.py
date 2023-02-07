@@ -15,10 +15,12 @@ post_list = PostViewSet.as_view({"get": "list", "post": "create"})
 post_detail = PostViewSet.as_view(
     {"get": "retrieve", "put": "update", "patch": "partial_update"}
 )
+set_tags = PostViewSet.as_view({"patch": "add_tag"})
 
 urlpatterns = [
     path("post/", post_list, name="post-list"),
     path("post/<str:slug_title>/<str:post_id>/", post_detail, name="post-detail"),
+    path("post/add-tag/<str:slug_title>/<str:post_id>/", set_tags, name="add_tag"),
 ]
 
 urlpatterns += router.urls

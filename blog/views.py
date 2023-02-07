@@ -42,6 +42,18 @@ class PostViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
+    @action(methods=["patch"], detail=True, url_name="add_tag", url_path="add-tag")
+    def add_tag(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            tags = request.data.get("tags")
+            tags = [tag["id"] for tag in tags]
+            instance.tags.set(tags)
+            return Response({"message": "success"})
+        except AttributeError:
+            message = ["invalid format"]
+            return Response({"error": message}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class PostBundleViewSet(viewsets.ModelViewSet):
     serializer_class = BundleSerializer
@@ -63,7 +75,7 @@ class PostBundleViewSet(viewsets.ModelViewSet):
     def my_bundles(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
 
-    @action(detail=False, url_name="search", url_path="bundle-search")
+    @action(detail=False, url_name="search", url_path="search")
     def bundle_search(self, request, *args, **kwargs):
         topic = request.query_params.get("topic")
         instance = self.get_queryset().filter(topic__icontains=topic)

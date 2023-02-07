@@ -39,7 +39,6 @@ class PostSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         request = self.context.get("request")
-
         if request.method.lower() in ["put", "patch"]:
             self.validate_bundle_order()
 
