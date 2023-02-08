@@ -19,6 +19,15 @@ def test_post_create(db, user):
     assert isinstance(resp.data.get("content"), dict) == True
 
 
+def test_post_list(db, post_a):
+    client = APIClient()
+    client.force_authenticate(post_a.author)
+    url = reverse("blog:post-list")
+    resp = client.get(url)
+    assert resp.status_code == 200
+    assert resp.data["results"][0].get("post_id") == post_a.post_id
+
+
 def test_post_retrieve(db, post_a):
     client = APIClient()
     url = reverse(

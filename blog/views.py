@@ -12,19 +12,25 @@ from .serializers import PostSerializer, BundleSerializer, TagSerializer
 
 
 class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.select_related("bundle", "author").prefetch_related(
-        Prefetch("tags"), Prefetch("likes")
-    )
     lookup_field = ["slug_title", "post_id"]
     permission_classes = [permissions.IsAuthenticated, IsOwner]
 
     def get_permissions(self):
         permissions_classes = self.permission_classes
         if self.action == "list":
-            return [LockOut()]
+            return [permissions.IsAuthenticated()]
         elif self.action == "retrieve":
             return [permissions.AllowAny()]
         return [perm() for perm in permissions_classes]
+
+    def get_queryset(self):
+        queryset = Post.objects.select_related("bundle", "author").prefetch_related(
+            Prefetch("tags"), Prefetch("likes")
+        )
+
+        if self.action == "list":
+            queryset = queryset.filter(author=self.request.user)
+        return queryset
 
     def get_serializer(self, *args, **kwargs):
         ctx = {"post_id": self.kwargs.get("post_id"), "request": self.request}
