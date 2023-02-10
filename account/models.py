@@ -2,7 +2,6 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 
 from account.custom_manger import UserManager
-from osonwa.general_models import Saved
 from osonwa.helpers import inmemory_wrapper
 from utils.gen_helpers import base64_encoded_uuid
 
@@ -135,15 +134,6 @@ class Notification(models.Model):
         return f"{self.owner.email}"
 
 
-class BookMarked(Saved):
-    user = models.ForeignKey(
-        "account.User",
-        on_delete=models.CASCADE,
-        related_name="bookmarked",
-        related_query_name="bookmarked",
-    )
-
-    # content =  models
 
 
 class Interest(models.Model):

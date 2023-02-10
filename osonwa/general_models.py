@@ -70,15 +70,6 @@ class UserFeedGroup(models.Model):
         self.topics_rank = existing_topics
 
 
-class Saved(models.Model):
-    content_type = models.CharField(max_length=30, null=False, blank=False)
-    date_saved = models.DateTimeField(default=timezone.now)
-
-    class Meta:
-        abstract = True
-        app_label = "account"
-
-
 class UserReaction(models.Model):
     REACTION_CHOICES = [
         ("facesunglass", "face with sunglass"),  # "\U0001F60E"

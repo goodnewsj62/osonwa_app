@@ -6,6 +6,8 @@ from django.utils import timezone
 from django_quill.fields import QuillField
 from django.template.defaultfilters import slugify
 from django.core.validators import FileExtensionValidator
+from django.contrib.contenttypes.fields import GenericRelation
+from core.models import Liked, Saved
 
 
 from osonwa.helpers import generate_b64_uuid_string, inmemory_wrapper
@@ -60,6 +62,8 @@ class Post(models.Model):
 
     order = models.IntegerField(null=True)  # for bundle
     approved = models.BooleanField(default=True)
+    likes = GenericRelation(Liked, related_query_name="post")
+    saved = GenericRelation(Saved, related_query_name="post")
 
     class Meta:
         verbose_name = "post"
@@ -129,22 +133,6 @@ class Tags(models.Model):
 
     def __str__(self) -> str:
         return self.tag_name
-
-
-class PostLike(models.Model):
-    post = models.ForeignKey(
-        "blog.Post",
-        on_delete=models.CASCADE,
-        related_name="likes",
-        related_query_name="like",
-    )
-
-    user = models.ForeignKey(
-        "account.User",
-        on_delete=models.CASCADE,
-        related_name="liked_articles",
-        related_query_name="liked_article",
-    )
 
 
 class PostUserReactions(UserReaction):
