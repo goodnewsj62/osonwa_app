@@ -11,6 +11,7 @@ class PostSerializer(serializers.Serializer):
     date_published = serializers.DateTimeField()
     tags = serializers.StringRelatedField(source="tags.tag_name", many=True)
     likes = serializers.SerializerMethodField()
+    is_post = serializers.SerializerMethodField("is_post_check")
     # comments = serializers.SerializerMethodField()
 
     def get_attr_if_exists(self, instance, attrs, default_attr=""):
@@ -28,15 +29,20 @@ class PostSerializer(serializers.Serializer):
         return self.get_attr_if_exists(instance, ["author", "website"], "publisher")
 
     def get_image(self, instance):
-        return self.get_attr_if_exists(instance, ["cover_image", "image_url"])
+        if hasattr(instance, "cover_image"):
+            return instance.cover_image.url
+        return instance.image_url
 
     def get_pub_image(self, instance):
         if hasattr(instance, "logo_url"):
             return instance.logo_url
-        return instance.author.profile.image
+        return instance.author.profile.image.url
 
     def get_likes(self, instance):
         return instance.likes.count()
 
     # def get_comments(self, instance):
     #     return instance.comments.count()
+
+    def is_post_check(self, instance):
+        return not hasattr("gid", instance)

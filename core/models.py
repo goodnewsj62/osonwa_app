@@ -16,7 +16,10 @@ class GenericRelationship(models.Model):
 
 class Saved(GenericRelationship):
     user = models.ForeignKey(
-        "account.User", related_name="saved", related_query_name="saved"
+        "account.User",
+        related_name="saved",
+        related_query_name="saved",
+        on_delete=models.CASCADE,
     )
 
     class Meta:
@@ -31,7 +34,10 @@ class Saved(GenericRelationship):
 class Liked(GenericRelationship):
 
     user = models.ForeignKey(
-        "account.User", related_name="liked", related_query_name="liked"
+        "account.User",
+        related_name="liked",
+        related_query_name="liked",
+        on_delete=models.CASCADE,
     )
 
     class Meta:
