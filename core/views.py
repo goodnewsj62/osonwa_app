@@ -37,7 +37,7 @@ class LikedView(APIView, pagination.PageNumberPagination):
         like = queryset.filter(likes__user__pk=request.user.pk)
 
         if like.exists():
-            queryset.first().likes.remove(like)
+            queryset.first().likes.remove(like.first())
             return Response({"message": "unliked"})
 
         Liked.objects.create(user=request.user, content_object=queryset.first())
@@ -70,7 +70,7 @@ class SavedView(APIView, pagination.PageNumberPagination):
         saved = queryset.filter(saved__user__pk=request.user.pk)
 
         if saved.exists():
-            queryset.first().likes.remove(saved)
+            queryset.first().likes.remove(saved.first())
             return Response({"message": "saved"})
 
         Saved.objects.create(user=request.user, content_object=queryset.first())
