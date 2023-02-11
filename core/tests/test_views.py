@@ -1,6 +1,8 @@
 from rest_framework.test import APIClient
 from django.urls import reverse
 
+from ..models import Liked, Saved
+
 
 def test_liked_posts(db, liked_posts_object):
     client = APIClient()
@@ -24,7 +26,11 @@ def test_toggle_like_state(db, liked_posts_object):
 
     resp = client.patch(url, {"type": "post"})
 
+    like_instance = Liked.objects.filter(
+        post=liked_posts_object[0].content_object, user=post_author
+    ).first()
     assert resp.status_code == 200
+    assert like_instance == None
 
 
 def test_saved_posts(db, saved_posts_object):
