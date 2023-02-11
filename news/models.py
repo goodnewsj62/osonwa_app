@@ -1,12 +1,17 @@
 from django.db import models
 from django.conf import settings
+from django.contrib.contenttypes.fields import GenericRelation
 
 from osonwa.general_models import DumpDB, Feed, UserFeedGroup, UserReaction
+from core.models import Liked, Saved
 
 # Create your models here.
 
 
 class NewsFeed(Feed):
+    likes = GenericRelation(Liked, related_query_name="news")
+    saved = GenericRelation(Saved, related_query_name="news")
+
     class Meta:
         verbose_name = "news feed"
         verbose_name_plural = "news feeds"

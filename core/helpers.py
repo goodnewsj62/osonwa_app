@@ -20,12 +20,12 @@ def get_model_from_type(type_):
     return strategies[type_]
 
 
-def get_content_query(self, type_):
+def get_content_query(type_):
     if type_ == "article":
-        article_type = ContentType.get_object_for_this_type(ArticleFeed)
-        post_type = ContentType.get_object_for_this_type(Post)
+        post_type = ContentType.objects.get_for_model(Post)
+        article_type = ContentType.objects.get_for_model(ArticleFeed)
         return Q(content_type__pk=article_type.pk) | Q(content_type__pk=post_type.pk)
-    news_type = ContentType.get_object_for_this_type(NewsFeed)
+    news_type = ContentType.objects.get_for_model(NewsFeed)
     return Q(content_type__pk=news_type.pk)
 
 

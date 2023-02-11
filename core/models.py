@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 
@@ -9,6 +10,7 @@ class GenericRelationship(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey()
+    date_created = models.DateTimeField(default=timezone.now)
 
     class Meta:
         abstract = True
@@ -23,6 +25,7 @@ class Saved(GenericRelationship):
     )
 
     class Meta:
+        ordering = ["-date_created"]
         indexes = [
             models.Index(fields=["content_type", "object_id"]),
         ]
@@ -41,6 +44,7 @@ class Liked(GenericRelationship):
     )
 
     class Meta:
+        ordering = ["-date_created"]
         indexes = [
             models.Index(fields=["content_type", "object_id"]),
         ]

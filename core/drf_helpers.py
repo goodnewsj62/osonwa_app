@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from account.external_serializer import UserSerializer
 
 
 class PostSerializer(serializers.Serializer):
@@ -9,7 +10,7 @@ class PostSerializer(serializers.Serializer):
     image = serializers.SerializerMethodField()
     pub_image = serializers.SerializerMethodField()
     date_published = serializers.DateTimeField()
-    tags = serializers.StringRelatedField(source="tags.tag_name", many=True)
+    # tags = serializers.StringRelatedField(source="tags.tag_name", many=True)
     likes = serializers.SerializerMethodField()
     is_post = serializers.SerializerMethodField("is_post_check")
     # comments = serializers.SerializerMethodField()
@@ -26,7 +27,10 @@ class PostSerializer(serializers.Serializer):
         )
 
     def get_publisher(self, instance):
-        return self.get_attr_if_exists(instance, ["author", "website"], "publisher")
+        value = self.get_attr_if_exists(instance, ["author", "website"], "publisher")
+        if isinstance(value, (str, int)):
+            return value
+        return UserSerializer(value).data
 
     def get_image(self, instance):
         if hasattr(instance, "cover_image"):
@@ -45,4 +49,4 @@ class PostSerializer(serializers.Serializer):
     #     return instance.comments.count()
 
     def is_post_check(self, instance):
-        return not hasattr("gid", instance)
+        return not hasattr(instance, "gid")

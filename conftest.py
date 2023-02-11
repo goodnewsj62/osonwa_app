@@ -3,6 +3,7 @@ from pytest_factoryboy import register
 
 
 from account.models import User
+from blog.factories import PostFactory, BundleFactory
 from account.factories import (
     UserFactory,
     NotificationFactory,
@@ -16,6 +17,8 @@ factories_ = [
     (NotificationFactory, "notification"),
     (ProfileFactory, "profile"),
     (SocialAccountFactory, "social"),
+    (BundleFactory, "bundle"),
+    (PostFactory, "post"),
 ]
 
 
