@@ -1,55 +1,98 @@
-from rest_framework.decorators import APIView
-from rest_framework import status
+from rest_framework.decorators import APIView, permission_classes, api_view
+from rest_framework import status, permissions
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
-from django.db.models import Q
-from django.contrib.contenttypes.models import ContentType
 
+from .models import Liked, Saved
 from .serializers import LikedSerializer, SavedSerializer
-from articles_feed.models import ArticleFeed
-from news.models import NewsFeed
-from blog.models import Post
+from .helpers import get_content_query, get_model_from_type, queryset_if_exists
 
 # Create your views here.
 class LikeArticlesView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
     def get(self, request, format=None, *args, **kwargs):
-        type_ = request.query_params().get("type", "articles")
+        type_ = request.query_params().get("type", "article")
         user = get_user_model().objects.filter(pk=kwargs.get("pk")).first()
         if request.user != user:
             message = {"error": ["you cannot access another user resource"]}
             return Response(message, status=status.HTTP_403_FORBIDDEN)
 
-        content_type_query = self.get_content_query(type_)
+        content_type_query = get_content_query(type_)
         queryset = user.liked.filter(content_type_query).all()
         serializer = LikedSerializer(instance=queryset, many=True)
         return Response(serializer.data)
 
-    def get_content_query(self, type_):
-        if type_ == "article":
-            article_type = ContentType.get_object_for_this_type(ArticleFeed)
-            post_type = ContentType.get_object_for_this_type(Post)
-            return Q(content_type__pk=article_type.pk) | Q(
-                content_type__pk=post_type.pk
-            )
-
-        news_type = ContentType.get_object_for_this_type(NewsFeed)
-        return Q(content_type__pk=news_type.pk)
-
     def patch(self, request, format=None, *args, **kwargs):
-        pass
+        type_ = request.data.get("type", "article")
+
+        returned_instance = queryset_if_exists(type_, kwargs.get("pk"))
+
+        if isinstance(returned_instance, Response):
+            return returned_instance
+
+        queryset = returned_instance
+        like = queryset.filter(likes__user__pk=request.user.pk)
+
+        if like.exists():
+            queryset.first().likes.remove(like)
+            return Response({"message": "unliked"})
+
+        Liked.objects.create(user=request.user, content_object=queryset.first())
+        return Response({"message": "liked"})
 
 
 class SavedArticlesView(APIView):
     def get(self, request, format=None, *args, **kwargs):
-        pass
+        type_ = request.query_params().get("type", "article")
+        user = get_user_model().objects.filter(pk=kwargs.get("pk")).first()
+        if request.user != user:
+            message = {"error": ["you cannot access another user resource"]}
+            return Response(message, status=status.HTTP_403_FORBIDDEN)
+
+        content_type_query = get_content_query(type_)
+        queryset = user.saved.filter(content_type_query).all()
+        serializer = SavedSerializer(instance=queryset, many=True)
+        return Response(serializer.data)
 
     def patch(self, request, format=None, *args, **kwargs):
-        pass
+        type_ = request.data.get("type", "article")
+
+        returned_instance = queryset_if_exists(type_, kwargs.get("pk"))
+
+        if isinstance(returned_instance, Response):
+            return returned_instance
+
+        queryset = returned_instance
+        saved = queryset.filter(saved__user__pk=request.user.pk)
+
+        if saved.exists():
+            queryset.first().likes.remove(saved)
+            return Response({"message": "saved"})
+
+        Saved.objects.create(user=request.user, content_object=queryset.first())
+        return Response({"message": "saved"})
 
 
-def is_liked(self, request):
-    pass
+@api_view(["GET"])
+@permission_classes([permissions.IsAuthenticated])
+def is_liked(self, request, *args, **kwargs):
+    returned_instance = queryset_if_exists(kwargs.get("type"), kwargs.get("pk"))
+    if isinstance(returned_instance, Response):
+        return returned_instance
+
+    instance = returned_instance.first()
+    status = Liked.objects.filter(content_object=instance, user=request.user).exists()
+    return Response({"message": status})
 
 
-def is_saved(self, request):
-    pass
+@api_view(["GET"])
+@permission_classes([permissions.IsAuthenticated])
+def is_saved(self, request, *args, **kwargs):
+    returned_instance = queryset_if_exists(kwargs.get("type"), kwargs.get("pk"))
+    if isinstance(returned_instance, Response):
+        return returned_instance
+
+    instance = returned_instance.first()
+    status = Saved.objects.filter(content_object=instance, user=request.user).exists()
+    return Response({"message": status})

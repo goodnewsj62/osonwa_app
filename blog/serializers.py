@@ -30,6 +30,8 @@ class PostSerializer(serializers.ModelSerializer):
     tags = CustomTagSerializer(many=True, required=False)
     author = UserSerializer(required=False)
     likes = serializers.SerializerMethodField("get_likes_count")
+    is_liked = serializers.SerializerMethodField()
+    is_saved = serializers.SerializerMethodField()
     bundle_name = serializers.StringRelatedField(source="bundle.topic")
 
     class Meta:
@@ -72,6 +74,18 @@ class PostSerializer(serializers.ModelSerializer):
         if order and order_exists:
             message = "An article with this order number exists. Please change the order and retry"
             raise serializers.ValidationError(message)
+
+    def get_is_liked(self, instance):
+        if "request" in self.context:
+            request = self.context["request"]
+            return instance.likes.filter(user__pk=request.user.pk).exists()
+        return False
+
+    def get_is_saved(self, instance):
+        if "request" in self.context:
+            request = self.context["request"]
+            return instance.saved.filter(user__pk=request.user.pk).exists()
+        return False
 
 
 class ImageSerializer(serializers.ModelSerializer):
