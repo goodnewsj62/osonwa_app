@@ -8,6 +8,6 @@ app_name = "core"
 urlpatterns = [
     path("liked/<int:pk>/", LikedView.as_view(), name="liked"),
     path("saved/<int:pk>/", SavedView.as_view(), name="saved"),
-    path("is-liked/<int:pk>/", is_liked, name="is_liked"),
-    path("is-saved/<int:pk>/", is_saved, name="is_saved"),
+    path("is-liked/<str:type>/<int:pk>/", is_liked, name="is_liked"),
+    path("is-saved/<str:type>/<int:pk>/", is_saved, name="is_saved"),
 ]

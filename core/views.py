@@ -70,7 +70,7 @@ class SavedView(APIView, pagination.PageNumberPagination):
         saved = queryset.filter(saved__user__pk=request.user.pk)
 
         if saved.exists():
-            queryset.first().likes.remove(saved.first())
+            queryset.first().saved.remove(saved.first())
             return Response({"message": "saved"})
 
         Saved.objects.create(user=request.user, content_object=queryset.first())
@@ -79,23 +79,27 @@ class SavedView(APIView, pagination.PageNumberPagination):
 
 @api_view(["GET"])
 @permission_classes([permissions.IsAuthenticated])
-def is_liked(self, request, *args, **kwargs):
-    returned_instance = queryset_if_exists(kwargs.get("type"), kwargs.get("pk"))
+def is_liked(request, *args, **kwargs):
+    type_ = kwargs.get("type")
+    returned_instance = queryset_if_exists(type_, kwargs.get("pk"))
     if isinstance(returned_instance, Response):
         return returned_instance
 
     instance = returned_instance.first()
-    status = Liked.objects.filter(content_object=instance, user=request.user).exists()
+    filter_ = {type_: instance}
+    status = Liked.objects.filter(user=request.user, **filter_).exists()
     return Response({"message": status})
 
 
 @api_view(["GET"])
 @permission_classes([permissions.IsAuthenticated])
-def is_saved(self, request, *args, **kwargs):
-    returned_instance = queryset_if_exists(kwargs.get("type"), kwargs.get("pk"))
+def is_saved(request, *args, **kwargs):
+    type_ = kwargs.get("type")
+    returned_instance = queryset_if_exists(type_, kwargs.get("pk"))
     if isinstance(returned_instance, Response):
         return returned_instance
 
     instance = returned_instance.first()
-    status = Saved.objects.filter(content_object=instance, user=request.user).exists()
+    filter_ = {type_: instance}
+    status = Saved.objects.filter(user=request.user, **filter_).exists()
     return Response({"message": status})
