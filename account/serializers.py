@@ -9,7 +9,15 @@ from account.helpers import perform_user_creation
 from utils.gen_helpers import setattr_if_exists
 
 
+class ProfileMinSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = "__all__"
+
+
 class UserSerializer(serializers.ModelSerializer):
+    profile = ProfileMinSerializer(required=False)
+
     class Meta:
         model = User
         exclude = [
