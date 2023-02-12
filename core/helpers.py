@@ -29,10 +29,10 @@ def get_content_query(type_):
     return Q(content_type__pk=news_type.pk)
 
 
-def queryset_if_exists(type_, pk):
+def get_resource_if_exists(type_, pk):
     model = get_model_from_type(type_)
     queryset = model.objects.filter(id=pk)
     if not queryset.exists():
         message = {"error": ["no such posts exists"]}
         return Response(message, status=status.HTTP_400_BAD_REQUEST)
-    return queryset
+    return queryset.first()

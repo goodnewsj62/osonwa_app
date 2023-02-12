@@ -27,7 +27,7 @@ urlpatterns = [
     path("refresh/", TokenRefreshView.as_view(), name="refresh"),
     path("auth/", include("account.urls")),
     path("blog/", include("blog.urls")),
-    path("/", include("core.urls")),
+    path("", include("core.urls")),
 ]
 
 urlpatterns = urlpatterns + static(

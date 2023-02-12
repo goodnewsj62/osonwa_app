@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 
 from .models import Liked, Saved
 from .serializers import LikedSerializer, SavedSerializer
-from .helpers import get_content_query, get_model_from_type, queryset_if_exists
+from .helpers import get_content_query, get_model_from_type, get_resource_if_exists
 
 # Create your views here.
 class LikedView(APIView, pagination.PageNumberPagination):
@@ -28,19 +28,18 @@ class LikedView(APIView, pagination.PageNumberPagination):
     def patch(self, request, format=None, *args, **kwargs):
         type_ = request.data.get("type", "article")
 
-        returned_instance = queryset_if_exists(type_, kwargs.get("pk"))
-
+        returned_instance = get_resource_if_exists(type_, kwargs.get("pk"))
         if isinstance(returned_instance, Response):
             return returned_instance
 
-        queryset = returned_instance
-        like = queryset.filter(likes__user__pk=request.user.pk)
+        post = returned_instance
+        like = Liked.objects.filter(user__pk=request.user.pk, **{type_: post})
 
         if like.exists():
-            queryset.first().likes.remove(like.first())
+            post.likes.remove(like.first())
             return Response({"message": "unliked"})
 
-        Liked.objects.create(user=request.user, content_object=queryset.first())
+        Liked.objects.create(user=request.user, content_object=post)
         return Response({"message": "liked"})
 
 
@@ -61,31 +60,31 @@ class SavedView(APIView, pagination.PageNumberPagination):
     def patch(self, request, format=None, *args, **kwargs):
         type_ = request.data.get("type", "article")
 
-        returned_instance = queryset_if_exists(type_, kwargs.get("pk"))
+        returned_instance = get_resource_if_exists(type_, kwargs.get("pk"))
 
         if isinstance(returned_instance, Response):
             return returned_instance
 
-        queryset = returned_instance
-        saved = queryset.filter(saved__user__pk=request.user.pk)
+        post = returned_instance
+        saved = Saved.objects.filter(user__pk=request.user.pk, **{type_: post})
 
         if saved.exists():
-            queryset.first().saved.remove(saved.first())
+            post.saved.remove(saved.first())
             return Response({"message": "saved"})
 
-        Saved.objects.create(user=request.user, content_object=queryset.first())
-        return Response({"message": "saved"})
+        Saved.objects.create(user=request.user, content_object=post)
+        return Response({"message": "unsaved"})
 
 
 @api_view(["GET"])
 @permission_classes([permissions.IsAuthenticated])
 def is_liked(request, *args, **kwargs):
     type_ = kwargs.get("type")
-    returned_instance = queryset_if_exists(type_, kwargs.get("pk"))
+    returned_instance = get_resource_if_exists(type_, kwargs.get("pk"))
     if isinstance(returned_instance, Response):
         return returned_instance
 
-    instance = returned_instance.first()
+    instance = returned_instance
     filter_ = {type_: instance}
     status = Liked.objects.filter(user=request.user, **filter_).exists()
     return Response({"message": status})
@@ -95,11 +94,11 @@ def is_liked(request, *args, **kwargs):
 @permission_classes([permissions.IsAuthenticated])
 def is_saved(request, *args, **kwargs):
     type_ = kwargs.get("type")
-    returned_instance = queryset_if_exists(type_, kwargs.get("pk"))
+    returned_instance = get_resource_if_exists(type_, kwargs.get("pk"))
     if isinstance(returned_instance, Response):
         return returned_instance
 
-    instance = returned_instance.first()
+    instance = returned_instance
     filter_ = {type_: instance}
     status = Saved.objects.filter(user=request.user, **filter_).exists()
     return Response({"message": status})
