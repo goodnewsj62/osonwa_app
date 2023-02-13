@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status, permissions
 from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import action, api_view
 from django.db.models import Prefetch
 
@@ -59,6 +60,21 @@ class PostViewSet(viewsets.ModelViewSet):
         except AttributeError:
             message = ["invalid format"]
             return Response({"error": message}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["GET"])
+def user_post(request, *args, **kwargs):
+    paginator = PageNumberPagination()
+    paginator.page_size = 50
+    username = kwargs.get("username", "")
+    queryset = (
+        Post.objects.select_related("bundle", "author")
+        .prefetch_related(Prefetch("tags"), Prefetch("likes"))
+        .filter(author__username=username)
+    )
+    page = paginator.paginate_queryset(queryset, request)
+    serializer = PostSerializer(page, many=True, context={"request": request})
+    return paginator.get_paginated_response(serializer.data)
 
 
 class PostBundleViewSet(viewsets.ModelViewSet):

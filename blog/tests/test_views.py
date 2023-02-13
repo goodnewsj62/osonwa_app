@@ -13,8 +13,10 @@ def test_post_create(db, user):
         "content": json.dumps(
             {"delta": {"ops": [{"insert": "so here we go\n"}]}, "html": ""}
         ),
+        "text_content": "so here we go",
     }
     resp = client.post(url, data=data)
+
     assert resp.status_code == 201
     assert isinstance(resp.data.get("content"), dict) == True
 
@@ -37,6 +39,14 @@ def test_post_retrieve(db, post_a):
     resp = client.get(url)
     assert isinstance(resp.data.get("content"), dict) == True
     assert resp.data.get("post_id") == post_a.post_id
+    assert resp.status_code == 200
+
+
+def test_get_authors_posts(db, post_a):
+    client = APIClient()
+    url = reverse("blog:user_post", kwargs={"username": post_a.author.username})
+    resp = client.get(url)
+
     assert resp.status_code == 200
 
 

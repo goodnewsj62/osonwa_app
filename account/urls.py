@@ -19,7 +19,7 @@ app_name = "auth"
 
 profile = AccountProfileView.as_view({"get": "list"})
 profile_view = AccountProfileView.as_view(
-    {"put": "update", "patch": "partial_update", "get": "retrieve"}
+    {"get": "retrieve", "put": "update", "patch": "partial_update"}
 )
 
 urlpatterns = [

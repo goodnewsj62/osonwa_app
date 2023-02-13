@@ -76,14 +76,14 @@ class PostSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(message)
 
     def get_is_liked(self, instance):
-        if "request" in self.context:
-            request = self.context["request"]
+        request = self.context.get("request")
+        if request and request.user.pk:
             return instance.likes.filter(user__pk=request.user.pk).exists()
         return False
 
     def get_is_saved(self, instance):
-        if "request" in self.context:
-            request = self.context["request"]
+        request = self.context.get("request")
+        if request and request.user.pk:
             return instance.saved.filter(user__pk=request.user.pk).exists()
         return False
 

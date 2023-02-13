@@ -234,6 +234,8 @@ class AccountProfileView(viewsets.ModelViewSet):
         perm_classes = self.permission_classes
         if self.action == "create":
             return [LockOut()]
+        elif self.action == "retrieve":
+            return [permissions.AllowAny()]
         elif self.action == "list":
             perm_classes = [permissions.IsAuthenticated]
         elif self.action in ["partial_update", "update"]:
