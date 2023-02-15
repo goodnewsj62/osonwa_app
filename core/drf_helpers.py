@@ -4,14 +4,18 @@ from account.external_serializer import UserSerializer
 
 class PostSerializer(serializers.Serializer):
     id = serializers.IntegerField()
+    post_id = serializers.SerializerMethodField()
     title = serializers.CharField()
+    slug_title = serializers.CharField()
     content = serializers.SerializerMethodField()
     publisher = serializers.SerializerMethodField()
     image = serializers.SerializerMethodField()
     pub_image = serializers.SerializerMethodField()
     date_published = serializers.DateTimeField()
-    # tags = serializers.StringRelatedField(source="tags.tag_name", many=True)
+    tags = serializers.SerializerMethodField()
     likes = serializers.SerializerMethodField()
+    is_liked = serializers.SerializerMethodField()
+    is_saved = serializers.SerializerMethodField()
     is_post = serializers.SerializerMethodField("is_post_check")
     # comments = serializers.SerializerMethodField()
 
@@ -47,6 +51,26 @@ class PostSerializer(serializers.Serializer):
 
     # def get_comments(self, instance):
     #     return instance.comments.count()
+
+    def get_tags(self, instance):
+        if hasattr(instance, "tags"):
+            return list(instance.tags.values())
+        return []
+
+    def get_is_liked(self, instance):
+        request = self.context.get("request")
+        if request and request.user.pk:
+            return instance.likes.filter(user__pk=request.user.pk).exists()
+        return False
+
+    def get_is_saved(self, instance):
+        request = self.context.get("request")
+        if request and request.user.pk:
+            return instance.saved.filter(user__pk=request.user.pk).exists()
+        return False
+
+    def get_post_id(self, instance):
+        return self.get_attr_if_exists(instance, ["post_id", "gid"])
 
     def is_post_check(self, instance):
         return not hasattr(instance, "gid")

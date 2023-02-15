@@ -9,18 +9,26 @@ from .relations import ContentTypeRelatedField
 class SavedSerializer(serializers.ModelSerializer):
     user = UserSerializer()
     content_type = ContentTypeRelatedField(read_only=True)
-    content_object = PostSerializer(required=False)
+    content_object = serializers.SerializerMethodField()
 
     class Meta:
         model = Saved
         fields = "__all__"
 
+    def get_content_object(self, instance):
+        ctx = self.context
+        return PostSerializer(instance=instance.content_object, context=ctx).data
+
 
 class LikedSerializer(serializers.ModelSerializer):
     user = UserSerializer()
     content_type = ContentTypeRelatedField(read_only=True)
-    content_object = PostSerializer(required=False)
+    content_object = serializers.SerializerMethodField()
 
     class Meta:
         model = Liked
         fields = "__all__"
+
+    def get_content_object(self, instance):
+        ctx = self.context
+        return PostSerializer(instance=instance.content_object, context=ctx).data

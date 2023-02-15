@@ -1,6 +1,7 @@
 import json
 
 from django.db import models
+from django.template.defaultfilters import slugify
 from django.utils import timezone
 
 
@@ -16,6 +17,7 @@ class Feed(models.Model):
     hash_id = models.TextField(unique=True, null=True, blank=False)
     gid = models.CharField(max_length=300, null=False, unique=True, blank=False)
     title = models.CharField(max_length=400, blank=False, null=False)
+    slug_title = models.SlugField(null=True, blank=True)
     description = models.TextField(null=True)
     link = models.URLField(max_length=700, null=False, blank=False)
     date_published = models.DateTimeField(null=False, blank=False)
@@ -41,6 +43,10 @@ class Feed(models.Model):
         subscopes = self.subscope
         subscopes.update(dict_scope)
         self.subscope = subscopes
+
+    def save(self, *args, **kwargs) -> None:
+        self.slug_title = slugify(self.title)
+        return super().save(*args, **kwargs)
 
 
 class UserFeedGroup(models.Model):

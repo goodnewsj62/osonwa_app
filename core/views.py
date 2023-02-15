@@ -22,7 +22,8 @@ class LikedView(APIView, pagination.PageNumberPagination):
         queryset = user.liked.filter(content_type_query).all()
 
         page = self.paginate_queryset(queryset, request, self)
-        serializer = LikedSerializer(instance=page, many=True)
+        ctx = {"request": request}
+        serializer = LikedSerializer(instance=page, many=True, context=ctx)
         return self.get_paginated_response(serializer.data)
 
     def patch(self, request, format=None, *args, **kwargs):
@@ -54,7 +55,8 @@ class SavedView(APIView, pagination.PageNumberPagination):
         content_type_query = get_content_query(type_)
         queryset = user.saved.filter(content_type_query).all()
         page = self.paginate_queryset(queryset, request, self)
-        serializer = SavedSerializer(instance=page, many=True)
+        ctx = {"request": request}
+        serializer = SavedSerializer(instance=page, many=True, context=ctx)
         return self.get_paginated_response(serializer.data)
 
     def patch(self, request, format=None, *args, **kwargs):
