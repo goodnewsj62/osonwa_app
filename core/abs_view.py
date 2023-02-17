@@ -64,7 +64,7 @@ class BaseReactionView(APIView, pagination.PageNumberPagination):
             "save_create": "saved",
         }
 
-        key = f"{action}_{model_type}"
+        key = f"{model_type}_{action}"
         return {"message": response[key]}
 
     def get_queryset(self, user, type_, **kwargs):
