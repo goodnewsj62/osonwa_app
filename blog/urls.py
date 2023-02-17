@@ -13,7 +13,7 @@ router.register("tag", TagViewSet, basename="tag")
 
 post_list = PostViewSet.as_view({"get": "list", "post": "create"})
 post_detail = PostViewSet.as_view(
-    {"get": "retrieve", "put": "update", "patch": "partial_update"}
+    {"get": "retrieve", "put": "update", "patch": "partial_update", "delete": "destroy"}
 )
 set_tags = PostViewSet.as_view({"patch": "add_tag"})
 

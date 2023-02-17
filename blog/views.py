@@ -65,7 +65,7 @@ class PostViewSet(viewsets.ModelViewSet):
 @api_view(["GET"])
 def user_post(request, *args, **kwargs):
     paginator = PageNumberPagination()
-    paginator.page_size = 5
+    paginator.page_size = 20
     username = kwargs.get("username", "")
     queryset = (
         Post.objects.select_related("bundle", "author")

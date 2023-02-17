@@ -42,6 +42,21 @@ def test_post_retrieve(db, post_a):
     assert resp.status_code == 200
 
 
+def test_post_delete(db, post_a):
+    client = APIClient()
+    client.force_authenticate(post_a.author)
+    url = reverse(
+        "blog:post-detail",
+        kwargs={"post_id": post_a.post_id, "slug_title": post_a.slug_title},
+    )
+
+    post_id = post_a.id
+    PostCls = type(post_a)
+    resp = client.delete(url)
+    assert resp.status_code == 204
+    assert PostCls.objects.filter(id=post_id).first() == None
+
+
 def test_get_authors_posts(db, post_a):
     client = APIClient()
     url = reverse("blog:user_post", kwargs={"username": post_a.author.username})
