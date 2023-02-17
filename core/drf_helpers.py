@@ -38,7 +38,7 @@ class PostSerializer(serializers.Serializer):
 
     def get_image(self, instance):
         if hasattr(instance, "cover_image"):
-            return instance.cover_image.url
+            return instance.cover_image.url if instance.cover_image else None
         return instance.image_url
 
     def get_pub_image(self, instance):
