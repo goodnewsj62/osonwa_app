@@ -102,3 +102,31 @@ def test_save(db, post_a):
     resp = client.patch(url, {"type": "post"})
 
     assert Saved.objects.first().content_object == post_a
+
+
+def test_search_saved(db, post_a):
+    client = APIClient()
+    client.force_authenticate(post_a.author)
+    url = reverse("core:search_saved") + f"?q={post_a.title[:5]}&type=article"
+
+    Saved.objects.create(content_object=post_a, user=post_a.author)
+
+    resp = client.get(url)
+
+    assert resp.status_code == 200
+    post_title = resp.data.get("results")[0].get("content_object").get("title")
+    assert post_title == post_a.title
+
+
+def test_search_like(db, post_a):
+    client = APIClient()
+    client.force_authenticate(post_a.author)
+    url = reverse("core:search_liked") + f"?q={post_a.title[:5]}&type=article"
+
+    Liked.objects.create(content_object=post_a, user=post_a.author)
+
+    resp = client.get(url)
+
+    assert resp.status_code == 200
+    post_title = resp.data.get("results")[0].get("content_object").get("title")
+    assert post_title == post_a.title
