@@ -200,12 +200,12 @@ def resizeImage(image, width_size=400, format_: str = "jpeg"):
     return thumb_io
 
 
-def inmemory_wrapper(image, default_path: str):
+def inmemory_wrapper(image, default_path: str,width_size=500):
     if (not image) or image == default_path:
         return image
 
     format_ = "".join(image.url.split(".")[-1:])
-    image_file = resizeImage(image, width_size=500, format_=format_)
+    image_file = resizeImage(image, width_size=width_size, format_=format_)
     return InMemoryUploadedFile(
         image_file,
         "ImageField",

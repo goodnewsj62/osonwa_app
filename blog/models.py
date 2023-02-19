@@ -79,7 +79,9 @@ class Post(models.Model):
     def save(self, *args, **kwargs) -> None:
         self.post_id = self.create_post_id(self.post_id)
         self.slug_title = slugify(self.title)
-        self.cover_image = inmemory_wrapper(self.cover_image, "/images/blogdefault.jpg")
+        self.cover_image = inmemory_wrapper(
+            self.cover_image, "/images/blogdefault.jpg", 1000
+        )
 
         return super().save(*args, **kwargs)
 
@@ -117,7 +119,7 @@ class PostImages(models.Model):
         return f"{str(self.reg)[:7]}"
 
     def save(self, *args, **kwargs) -> None:
-        self.image = inmemory_wrapper(self.image, "")
+        self.image = inmemory_wrapper(self.image, "", 1000)
         return super().save(*args, **kwargs)
 
 

@@ -83,7 +83,7 @@ class PostBundleViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         permissions_classes = self.permission_classes
-        if self.action in ["list", "create"]:
+        if self.action in ["list", "retrieve"]:
             return [permissions.AllowAny()]
         return [perm() for perm in permissions_classes]
 

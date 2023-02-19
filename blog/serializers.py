@@ -5,18 +5,6 @@ from blog.models import Bundle, Post, Tags, PostImages
 from account.serializers import UserSerializer
 
 
-class BundleSerializer(serializers.ModelSerializer):
-    taken_order_no = serializers.SerializerMethodField("get_all_order_no")
-
-    class Meta:
-        model = Bundle
-        fields = "__all__"
-        extra_kwargs = {"created_by": {"required": False}}
-
-    def get_all_order_no(self, instance):
-        return [post.order for post in instance.posts.all()]
-
-
 class CustomTagSerializer(serializers.ModelSerializer):
     post = None
 
@@ -101,3 +89,19 @@ class TagSerializer(serializers.ModelSerializer):
         model = Tags
         fields = ["id", "tag_name", "post"]
         extra_kwargs = {}
+
+
+class BundleSerializer(serializers.ModelSerializer):
+    taken_order_no = serializers.SerializerMethodField("get_all_order_no")
+    posts = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Bundle
+        fields = "__all__"
+        extra_kwargs = {"created_by": {"required": False}}
+
+    def get_all_order_no(self, instance):
+        return [post.order for post in instance.posts.all()]
+
+    def get_posts(self, instance):
+        return [PostSerializer(post).data for post in instance.posts.order_by("order")]
