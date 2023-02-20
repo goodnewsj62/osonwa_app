@@ -2,7 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 
-from osonwa.general_models import DumpDB, Feed, UserFeedGroup, UserReaction
+from osonwa.general_models import DumpDB, Feed, UserFeedGroup, UserReaction, Tag
 from core.models import Liked, Saved
 
 # Create your models here.
@@ -74,3 +74,9 @@ class ContentBasedRecommendedNewsFeed(models.Model):
 
 class RawFeed(DumpDB):
     pass
+
+
+class NewsTag(Tag):
+    posts = models.ManyToManyField(
+        "news.NewsFeed", related_name="tags", related_query_name="tag"
+    )

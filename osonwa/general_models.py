@@ -119,3 +119,13 @@ class UserReaction(models.Model):
 
     # check if data is instance of str if it is get existing reaction and loads incoming reactions
     # then add all incoming reactions to existing reaction then set reaction and save return the saved reasctions
+
+
+class Tag(models.Model):
+    tag_name =  models.CharField("tags", max_length=300, unique=True, null=False) 
+
+    class Meta:
+        abstract =  True
+
+    def __str__(self) -> str:
+        return self.tag_name

@@ -11,7 +11,7 @@ from core.models import Liked, Saved
 
 
 from osonwa.helpers import generate_b64_uuid_string, inmemory_wrapper
-from osonwa.general_models import UserReaction
+from osonwa.general_models import UserReaction, Tag
 
 # Create your models here.
 
@@ -123,8 +123,7 @@ class PostImages(models.Model):
         return super().save(*args, **kwargs)
 
 
-class Tags(models.Model):
-    tag_name = models.CharField("tags", max_length=300, unique=True, null=False)
+class Tags(Tag):
     posts = models.ManyToManyField(
         "blog.Post", related_name="tags", related_query_name="tags"
     )
@@ -132,9 +131,6 @@ class Tags(models.Model):
     class Meta:
         verbose_name = "tag"
         verbose_name_plural = "tags"
-
-    def __str__(self) -> str:
-        return self.tag_name
 
 
 class PostUserReactions(UserReaction):

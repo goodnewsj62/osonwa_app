@@ -21,6 +21,7 @@ class PostSerializer(serializers.ModelSerializer):
     is_liked = serializers.SerializerMethodField()
     is_saved = serializers.SerializerMethodField()
     bundle_name = serializers.StringRelatedField(source="bundle.topic")
+    taken_order_no = serializers.SerializerMethodField("get_all_order_no")
 
     class Meta:
         model = Post
@@ -74,6 +75,11 @@ class PostSerializer(serializers.ModelSerializer):
         if request and request.user.pk:
             return instance.saved.filter(user__pk=request.user.pk).exists()
         return False
+    
+    def get_all_order_no(self, instance):
+        if instance.bundle:
+            return [post.order for post in instance.bundle.posts.all()]
+        return []
 
 
 class ImageSerializer(serializers.ModelSerializer):

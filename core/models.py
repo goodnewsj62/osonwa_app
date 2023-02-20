@@ -1,7 +1,8 @@
 from django.db import models
 from django.utils import timezone
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django_quill.fields import QuillField
 
 # Create your models here.
 
@@ -53,15 +54,25 @@ class Liked(GenericRelationship):
         return self.user.username
 
 
-# class Comments(GenericRelationship):
-# user = models.ForeignKey(
-#     "account.User", related_name="liked", related_query_name="liked"
-# )
+class Comment(GenericRelationship):
+    created_by = models.ForeignKey(
+        "account.User",
+        on_delete=models.CASCADE,
+        related_name="comments",
+        related_query_name="comment",
+    )
+    mentions = models.ManyToManyField(
+        "account.User", related_name="mentions", related_query_name="mention"
+    )
+    content = QuillField()
+    text_content = models.TextField()
+    likes = GenericRelation(Liked, related_query_name="comment")
 
-# class Meta:
-#     indexes = [
-#         models.Index(fields=["content_type", "object_id"]),
-#     ]
+    class Meta:
+        ordering = ["-date_created"]
+        indexes = [
+            models.Index(fields=["content_type", "object_id"]),
+        ]
 
-# def __str__(self):
-#     return self.user.username
+    def __str__(self):
+        return self.created_by.username

@@ -2,7 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 
-from osonwa.general_models import DumpDB, Feed, UserFeedGroup, UserReaction
+from osonwa.general_models import DumpDB, Feed, UserFeedGroup, UserReaction, Tag
 from core.models import Liked, Saved
 
 # Create your models here.
@@ -69,3 +69,9 @@ class CollabBasedRecommendedArticle(models.Model):
 
     class Meta:
         pass
+
+
+class ArticleTag(Tag):
+    posts = models.ManyToManyField(
+        "articles_feed.ArticleFeed", related_name="tags", related_query_name="tag"
+    )

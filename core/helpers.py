@@ -7,6 +7,7 @@ from rest_framework import status
 from articles_feed.models import ArticleFeed
 from news.models import NewsFeed
 from blog.models import Post
+from .models import Comment
 
 
 def get_model_from_type(type_):
@@ -14,7 +15,7 @@ def get_model_from_type(type_):
         "post": Post,
         "article": ArticleFeed,
         "news": NewsFeed,
-        "comment": None,
+        "comment": Comment,
     }
 
     return strategies[type_]
