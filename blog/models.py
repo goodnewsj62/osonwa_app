@@ -33,6 +33,7 @@ class Bundle(models.Model):
 
 # -tags
 class Post(models.Model):
+    m_name = models.CharField(max_length=15, null=False, blank=False, default="post")
     post_id = models.CharField(unique=True, max_length=20, blank=True, null=True)
     title = models.CharField("title", max_length=300, blank=False, null=False)
     slug_title = models.SlugField(null=True, blank=True)
@@ -77,6 +78,7 @@ class Post(models.Model):
         return f"<{self.title}>"
 
     def save(self, *args, **kwargs) -> None:
+        self.m_name = "post"
         self.post_id = self.create_post_id(self.post_id)
         self.slug_title = slugify(self.title)
         self.cover_image = inmemory_wrapper(

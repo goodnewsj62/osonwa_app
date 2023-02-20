@@ -132,3 +132,29 @@ SCRAPE_URLS = [
     r"https://about.gitlab.com/blog/",
     r"https://medium.com/tag/python",
 ]
+
+
+post_fields = [
+    "id",
+    "post_id",
+    "slug_title",
+    "text_content",
+    "title",
+    "image",
+    "date_published",
+    "author__username",
+    "m_name",
+    "author__profile__image",
+]
+article_fields = [
+    "id",
+    "gid",
+    "slug_title",
+    "description",
+    "title",
+    "image_url",
+    "date_published",
+    "website",
+    "m_name",
+    "logo_url",
+]

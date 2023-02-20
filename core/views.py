@@ -1,12 +1,16 @@
 from rest_framework.decorators import APIView, permission_classes, api_view, action
-from rest_framework import permissions, pagination
+from rest_framework import permissions, pagination, viewsets
 from rest_framework.response import Response
 from django.db.models import Q
 
 from .abs_view import BaseReactionView
 from .models import Liked, Saved
 from .serializers import LikedSerializer, SavedSerializer
-from .helpers import get_content_query, get_resource_if_exists
+from .helpers import (
+    get_content_query,
+    get_resource_if_exists,
+    get_queryset_and_serializer,
+)
 
 # Create your views here.
 
@@ -91,3 +95,17 @@ def search_saved(request, *args, **kwargs):
     page = paginator.paginate_queryset(queryset, request)
     serializer = SavedSerializer(page, many=True, context={"request": request})
     return paginator.get_paginated_response(serializer.data)
+
+
+class TagsView(APIView, pagination.PageNumberPagination):
+    def get(self, request, *args, **kwargs):
+        tag_name = request.query_params.get("name", "")
+        type_ = request.query_params.get("type", "article")
+        queryset, serializer = get_queryset_and_serializer(type_, tag_name)
+        page = self.paginate_queryset(queryset, request, self)
+        serializer = serializer(page)
+        return self.get_paginated_response(serializer.data)
+
+
+class CommentView(viewsets.ModelViewSet):
+    pass

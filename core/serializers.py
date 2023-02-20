@@ -32,3 +32,9 @@ class LikedSerializer(serializers.ModelSerializer):
     def get_content_object(self, instance):
         ctx = self.context
         return PostSerializer(instance=instance.content_object, context=ctx).data
+
+
+class TagSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    tag_name = serializers.CharField()
+    posts = PostSerializer(many=True, read_only=True)

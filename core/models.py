@@ -67,6 +67,7 @@ class Comment(GenericRelationship):
     content = QuillField()
     text_content = models.TextField()
     likes = GenericRelation(Liked, related_query_name="comment")
+    comments = GenericRelation("self", related_query_name="comment")
 
     class Meta:
         ordering = ["-date_created"]

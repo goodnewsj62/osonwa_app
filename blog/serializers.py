@@ -15,6 +15,7 @@ class CustomTagSerializer(serializers.ModelSerializer):
 
 
 class PostSerializer(serializers.ModelSerializer):
+    m_model = None
     tags = CustomTagSerializer(many=True, required=False)
     author = UserSerializer(required=False)
     likes = serializers.SerializerMethodField("get_likes_count")
@@ -75,7 +76,7 @@ class PostSerializer(serializers.ModelSerializer):
         if request and request.user.pk:
             return instance.saved.filter(user__pk=request.user.pk).exists()
         return False
-    
+
     def get_all_order_no(self, instance):
         if instance.bundle:
             return [post.order for post in instance.bundle.posts.all()]

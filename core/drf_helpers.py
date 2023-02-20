@@ -1,5 +1,9 @@
+from collections import OrderedDict
+
 from rest_framework import serializers
 from account.external_serializer import UserSerializer
+
+from osonwa.constants import post_fields
 
 
 class PostSerializer(serializers.Serializer):
@@ -74,3 +78,17 @@ class PostSerializer(serializers.Serializer):
 
     def is_post_check(self, instance):
         return not hasattr(instance, "gid")
+
+
+class TagPostSerializer(serializers.BaseSerializer):
+    def to_representation(self, instance):
+        resp = OrderedDict()
+
+        for field in post_fields:
+            resp[field] = getattr(instance, field, None)
+
+        resp["publisher"] = instance.author__username
+        resp["pub_image"] = instance.author__profile__image
+        resp.pop("author__username")
+        resp.pop("author__profile__image")
+        return resp
