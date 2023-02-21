@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-import random
+import pytz
 import re
 from datetime import datetime, timedelta, timezone
 
@@ -54,7 +54,8 @@ class CssTrickStrategy(ScrapingStrategy):
 
     @staticmethod
     def to_native_date(date_str: str):
-        return datetime.strptime(date_str, r"%b %d, %Y")
+        dt = datetime.strptime(date_str, r"%b %d, %Y")
+        return dt.astimezone(pytz.utc)
 
 
 class DigitalOceanStrategy(ScrapingStrategy):
@@ -62,7 +63,7 @@ class DigitalOceanStrategy(ScrapingStrategy):
         self.soup = soup
 
     def handle(self, save):
-        articles = self.soup.find_all("a", class_=re.compile(r"^Tutorial"))
+        articles = self.soup.find_all("a", class_=re.compile(r"^TutorialCar"))
 
         for article in articles:
             header = article.find("h3")
@@ -86,7 +87,8 @@ class DigitalOceanStrategy(ScrapingStrategy):
 
     @staticmethod
     def to_native_date(date_str: str):
-        return datetime.strptime(date_str, r"%B %d, %Y")
+        dt = datetime.strptime(date_str, r"%B %d, %Y")
+        return dt.astimezone(pytz.utc)
 
 
 class MediumStrategy(ScrapingStrategy):
@@ -237,30 +239,29 @@ class GitBlogStrategy(ScrapingStrategy):
         self.soup = soup
 
     def handle(self, save):
-        articles = self.soup.find(class_="blog-recent-post-grid").find_all(
+        articles = self.soup.find(class_="section-posts").div.find_all(
             class_="blog-card"
         )
         for article in articles:
             link = article.find("a").get("href")
 
-            title = article.find("h3").get_text()
-            date = article.find(class_="blog-card-date").get_text()
+            title = article.find("h5").get_text()
+            # date = article.find(class_="blog-card-date").get_text()
             image_url = article.find("img").attrs.get("src")
-            summary = article.find("p").get_text()
+            # summary = article.find("p").get_text()
 
             link = "https://about.gitlab.com" + link
             image_url = "https://about.gitlab.com" + image_url
-            summary = re.sub(r"\n", "", summary)
+            # summary = re.sub(r"\n", "", summary)
             title = re.sub(r"\n", "", title)
-            date = re.sub(r"\n", "", date)
 
             save(
                 {
                     "link": link,
                     "title": title,
                     "image_url": image_url,
-                    "summary": summary,
-                    "date": self.to_native_date(date),
+                    "summary": "",
+                    "date": datetime.now(tz=timezone.utc),
                 }
             )
 

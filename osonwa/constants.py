@@ -115,6 +115,7 @@ WEB_DEV_RSS_FEED_URLS = [
     r"https://reactjs.org/feed.xml",
     r"https://blog.logrocket.com/feed/",
     r"https://cssauthor.com/feed/",
+    r"https://www.syncfusion.com/blogs/feed",
 ]
 
 
@@ -127,7 +128,7 @@ SCRAPE_URLS = [
     r"https://www.digitalocean.com/community/tutorials",
     r"https://www.freecodecamp.org/news",
     r"https://medium.com/tag/go",
-    r"https://www.syncfusion.com/blogs",
+    # r"https://www.syncfusion.com/blogs",
     r"https://medium.com/tag/javascript",
     r"https://about.gitlab.com/blog/",
     r"https://medium.com/tag/python",
@@ -140,7 +141,7 @@ post_fields = [
     "slug_title",
     "text_content",
     "title",
-    "image",
+    "cover_image",
     "date_published",
     "author__username",
     "m_name",

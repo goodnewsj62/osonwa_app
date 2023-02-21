@@ -24,7 +24,7 @@ class PostSerializer(serializers.Serializer):
     is_liked = serializers.SerializerMethodField()
     is_saved = serializers.SerializerMethodField()
     is_post = serializers.SerializerMethodField("is_post_check")
-    # comments = serializers.SerializerMethodField()
+    comments = serializers.SerializerMethodField()
 
     def get_attr_if_exists(self, instance, attrs, default_attr=""):
         for attr in attrs:
@@ -56,8 +56,8 @@ class PostSerializer(serializers.Serializer):
     def get_likes(self, instance):
         return instance.likes.count()
 
-    # def get_comments(self, instance):
-    #     return instance.comments.count()
+    def get_comments(self, instance):
+        return instance.comments.count()
 
     def get_tags(self, instance):
         if hasattr(instance, "tags"):

@@ -3,10 +3,14 @@ from rest_framework import permissions, pagination, viewsets
 from rest_framework.response import Response
 from django.db.models import Q
 
-from utils.permissions import IsOwner
+from utils.permissions import IsOwner, LockOut
+from news.models import NewsFeed
+from articles_feed.models import ArticleFeed
 from .abs_view import BaseReactionView
 from .models import Liked, Saved, Comment
+from .drf_helpers import PostSerializer
 from .serializers import LikedSerializer, SavedSerializer, CommentSerializer
+from .recommended import get_recommended_news_feed
 from .helpers import (
     get_content_query,
     get_resource_if_exists,
@@ -142,3 +146,23 @@ class CommentView(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         return serializer.save(created_by=self.request.user)
+
+
+class NewsView(viewsets.ModelViewSet):
+    serializer_class = PostSerializer
+
+    def get_queryset(self):
+        queryset = NewsFeed.objects.prefetch_related(
+            "tags", "comments", "likes"
+        ).order_by("-date_published")
+        is_authenticated = self.request.user.is_authenticated
+        if self.action == "list" and is_authenticated:
+            recommended = get_recommended_news_feed(self.request.user)
+            queryset = queryset.filter(id__in=recommended) if recommended else queryset
+            return queryset
+        return queryset
+
+    def get_permissions(self):
+        if not self.request.method in permissions.SAFE_METHODS:
+            return [LockOut()]
+        return [permissions.AllowAny()]

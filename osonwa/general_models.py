@@ -17,7 +17,7 @@ class Feed(models.Model):
     hash_id = models.TextField(unique=True, null=True, blank=False)
     gid = models.CharField(max_length=300, null=False, unique=True, blank=False)
     title = models.CharField(max_length=400, blank=False, null=False)
-    slug_title = models.SlugField(null=True, blank=True)
+    slug_title = models.SlugField(max_length=700, null=True, blank=True)
     description = models.TextField(null=True)
     link = models.URLField(max_length=700, null=False, blank=False)
     date_published = models.DateTimeField(null=False, blank=False)
@@ -25,7 +25,7 @@ class Feed(models.Model):
     image_url = models.URLField(max_length=500, null=True, blank=True)
     logo_url = models.URLField(max_length=500, null=True, blank=True)
     website = models.CharField(max_length=500, null=True, blank=False)
-    scope = models.CharField(max_length=50, null=True, blank=True)
+    scope = models.CharField(max_length=100, null=True, blank=True)
     subscope = models.JSONField(default=dict)
 
     class Meta:
@@ -122,10 +122,10 @@ class UserReaction(models.Model):
 
 
 class Tag(models.Model):
-    tag_name =  models.CharField("tags", max_length=300, unique=True, null=False) 
+    tag_name = models.CharField("tags", max_length=300, unique=True, null=False)
 
     class Meta:
-        abstract =  True
+        abstract = True
 
     def __str__(self) -> str:
         return self.tag_name

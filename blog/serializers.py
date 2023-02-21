@@ -19,6 +19,7 @@ class PostSerializer(serializers.ModelSerializer):
     tags = CustomTagSerializer(many=True, required=False)
     author = UserSerializer(required=False)
     likes = serializers.SerializerMethodField("get_likes_count")
+    comments = serializers.SerializerMethodField("get_comments_count")
     is_liked = serializers.SerializerMethodField()
     is_saved = serializers.SerializerMethodField()
     bundle_name = serializers.StringRelatedField(source="bundle.topic")
@@ -38,6 +39,9 @@ class PostSerializer(serializers.ModelSerializer):
 
     def get_likes_count(self, instance):
         return instance.likes.count()
+
+    def get_comments_count(self, instance):
+        return instance.comments.count()
 
     def to_representation(self, instance):
         resp = super().to_representation(instance)

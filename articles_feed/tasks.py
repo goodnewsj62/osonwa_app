@@ -45,8 +45,8 @@ def extract_info(dbkey_url_tuple):
         "css-tricks": CssTrickStrategy,
         "medium": MediumStrategy,
         "freecodecamp": FreeCodeCampStrategy,
-        "syncfusion": SyncFusionStrategy,
-        "about.gitlab": GitBlogStrategy,
+        # "syncfusion": SyncFusionStrategy,
+        "gitlab": GitBlogStrategy,
     }
     if pk:  # 0 is returned when execption occur in calling task
         dump_db = RawFeed.objects.get(id=pk)
