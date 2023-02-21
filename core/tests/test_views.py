@@ -202,3 +202,26 @@ def test_patch_comments(db, comment_object):
 
     resp = client.patch(url, data=data)
     assert resp.status_code == 200
+
+
+def test_news_list(db, newsfeed):
+    client = APIClient()
+    url = reverse("core:news")
+
+    resp = client.get(url)
+
+    assert resp.status_code == 200
+    assert resp.data.get("results")[0].get("id") == newsfeed.id
+
+
+def test_news_detail(db, newsfeed):
+    client = APIClient()
+    url = reverse(
+        "core:news_detail",
+        kwargs={"slug_title": newsfeed.slug_title, "post_id": newsfeed.gid},
+    )
+
+    resp = client.get(url)
+
+    assert resp.status_code == 200
+    assert resp.data.get("id") == newsfeed.id

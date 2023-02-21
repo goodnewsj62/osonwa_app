@@ -11,7 +11,7 @@ from core.models import Liked, Saved, Comment
 class NewsFeed(Feed):
     likes = GenericRelation(Liked, related_query_name="news")
     saved = GenericRelation(Saved, related_query_name="news")
-    saved = GenericRelation(Comment, related_query_name="news")
+    comments = GenericRelation(Comment, related_query_name="news")
 
     class Meta:
         verbose_name = "news feed"

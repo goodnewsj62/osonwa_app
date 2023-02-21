@@ -1,6 +1,22 @@
 import pytest
+from pytest_factoryboy import register
 
 from ..models import Liked, Saved, Comment
+
+
+from news.factories import (
+    NewsFeedFactory,
+)
+
+factory_name_list = [
+    (NewsFeedFactory, "newsfeed"),
+    # more to be added
+]
+
+
+for factory_tuple in factory_name_list:
+    register(factory_tuple[0], factory_tuple[1] + "_a")
+    register(factory_tuple[0], factory_tuple[1])
 
 
 @pytest.fixture

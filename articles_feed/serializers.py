@@ -8,10 +8,3 @@ class ArticleFeedSerializer(serializers.ModelField):
         model = ArticleFeed
         fields = "__all__"
         extra_kwargs = {}
-
-
-class ArticleReactionSerializer(serializers.ModelField):
-    class Meta:
-        model = ArticleReaction
-        fields = "__all__"
-        extra_kwargs = {}

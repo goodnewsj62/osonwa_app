@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from rest_framework.decorators import APIView, permission_classes, api_view, action
 from rest_framework import permissions, pagination, viewsets
 from rest_framework.response import Response
@@ -150,6 +151,23 @@ class CommentView(viewsets.ModelViewSet):
 
 class NewsView(viewsets.ModelViewSet):
     serializer_class = PostSerializer
+    lookup_field = ["slug_title", "post_id"]
+
+    def get_object(self):
+        query_set = self.get_queryset()
+        filters = {}
+        for field in self.lookup_field:
+            filters[field] = self.kwargs[field]
+
+        filters["gid"] = filters.pop("post_id")
+        obj = get_object_or_404(query_set, **filters)
+        self.check_object_permissions(self.request, obj)
+        return obj
+
+    def get_permissions(self):
+        if not self.request.method in permissions.SAFE_METHODS:
+            return [LockOut()]
+        return [permissions.AllowAny()]
 
     def get_queryset(self):
         queryset = NewsFeed.objects.prefetch_related(
@@ -161,8 +179,3 @@ class NewsView(viewsets.ModelViewSet):
             queryset = queryset.filter(id__in=recommended) if recommended else queryset
             return queryset
         return queryset
-
-    def get_permissions(self):
-        if not self.request.method in permissions.SAFE_METHODS:
-            return [LockOut()]
-        return [permissions.AllowAny()]

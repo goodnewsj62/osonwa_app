@@ -5,6 +5,7 @@ from .views import (
     LikedView,
     SavedView,
     CommentView,
+    NewsView,
     is_liked,
     is_saved,
     search_saved,
@@ -16,6 +17,9 @@ app_name = "core"
 router = SimpleRouter()
 router.register("comment", CommentView, "comment")
 
+news_list = NewsView.as_view({"get": "list"})
+news_detail = NewsView.as_view({"get": "retrieve"})
+
 urlpatterns = [
     path("liked/<int:pk>/", LikedView.as_view(), name="liked"),
     path("saved/<int:pk>/", SavedView.as_view(), name="saved"),
@@ -23,6 +27,8 @@ urlpatterns = [
     path("is-saved/<str:type>/<int:pk>/", is_saved, name="is_saved"),
     path("search/saved/", search_saved, name="search_saved"),
     path("search/like/", search_like, name="search_liked"),
+    path("news/", news_list, name="news"),
+    path("news/<str:slug_title>/<str:post_id>/", news_detail, name="news_detail"),
 ]
 
 urlpatterns += router.urls
