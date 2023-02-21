@@ -3,13 +3,15 @@ from rest_framework import permissions, pagination, viewsets
 from rest_framework.response import Response
 from django.db.models import Q
 
+from utils.permissions import IsOwner
 from .abs_view import BaseReactionView
-from .models import Liked, Saved
-from .serializers import LikedSerializer, SavedSerializer
+from .models import Liked, Saved, Comment
+from .serializers import LikedSerializer, SavedSerializer, CommentSerializer
 from .helpers import (
     get_content_query,
     get_resource_if_exists,
     get_queryset_and_serializer,
+    get_content_type,
 )
 
 # Create your views here.
@@ -108,4 +110,35 @@ class TagsView(APIView, pagination.PageNumberPagination):
 
 
 class CommentView(viewsets.ModelViewSet):
-    pass
+    def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return [permissions.AllowAny()]
+        elif self.action == "create":
+            return [permissions.IsAuthenticated()]
+        return [permissions.IsAuthenticated(), IsOwner()]
+
+    def get_serializer(self, *args, **kwargs):
+        serializer = CommentSerializer(
+            *args, **kwargs, context={"request": self.request}
+        )
+        return serializer
+
+    def get_queryset(self, *args, **kwargs):
+        queryset = Comment.objects.select_related("created_by").prefetch_related(
+            "mentions"
+        )
+        if self.action == "list":
+            return queryset.filter(**kwargs).all()
+        return queryset
+
+    def list(self, request, *args, **kwargs):
+        type_ = request.query_params.get("type", "article")
+        id_ = request.query_params.get("id")
+        content_type = get_content_type(type_)
+        queryset = self.get_queryset(content_type__pk=content_type.id, object_id=id_)
+        page = self.paginate_queryset(queryset, request, self)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    def perform_create(self, serializer):
+        return serializer.save(created_by=self.request.user)

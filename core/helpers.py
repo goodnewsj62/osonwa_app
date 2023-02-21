@@ -1,4 +1,5 @@
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth import get_user_model
 from django.db.models import Q
 from rest_framework.response import Response
 from rest_framework import status
@@ -61,3 +62,18 @@ def get_for_article(tag_name):
 
 def get_for_news(tag_name):
     return get_queryset(NewsTag, tag_name), PostSerializer
+
+
+def get_content_type(self, type_):
+    model = get_model_from_type(type_)
+    return ContentType.objects.get_for_model(model)
+
+
+def is_child_to_comment(comment):
+    return isinstance(comment.content_object, Comment)
+
+
+def set_mentions(mentions: list, instance):
+    User = get_user_model()
+    users = User.objects.filter(username__in=[mentions]).all()
+    instance.mentions.set(list(users))

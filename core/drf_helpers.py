@@ -4,6 +4,9 @@ from rest_framework import serializers
 from account.external_serializer import UserSerializer
 
 from osonwa.constants import post_fields
+from news.models import NewsFeed
+from articles_feed.models import ArticleFeed
+from .models import Comment
 
 
 class PostSerializer(serializers.Serializer):
@@ -92,3 +95,41 @@ class TagPostSerializer(serializers.BaseSerializer):
         resp.pop("author__username")
         resp.pop("author__profile__image")
         return resp
+
+
+class CommentSerializerExt(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = "__all__"
+
+    def to_representation(self, instance):
+        resp = super().to_representation(instance)
+        resp["content"] = instance.content.delta
+        resp["html"] = instance.content.html
+        resp["mentions"] = UserSerializer(instance.mentions.all(), many=True).data
+        return resp
+
+
+class CommentSerializerMixin:
+    def get_content_object(self, instance):
+        instance_possibilites = [
+            (NewsFeed, PostSerializer),
+            (ArticleFeed, PostSerializer),
+            (Comment, CommentSerializerExt),
+        ]
+        for model, serializers in instance_possibilites:
+            if isinstance(instance.content_object, model):
+                return serializers(instance.content_object).data
+        return {}
+
+    def get_post_info(self, instance):
+        """there are only two level nesting"""
+        if isinstance(instance.content_object, Comment):
+            return PostSerializer(instance.content_object.content_object).data
+        return PostSerializer(instance.content_object).data
+
+    def get_likes_count(self, instance):
+        instance.likes.count()
+
+    def get_comments_count(self, instance):
+        instance.comments.count()
