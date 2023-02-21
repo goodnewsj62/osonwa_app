@@ -3,7 +3,7 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 
 from osonwa.general_models import DumpDB, Feed, UserFeedGroup, UserReaction, Tag
-from core.models import Liked, Saved
+from core.models import Liked, Saved, Comment
 
 # Create your models here.
 
@@ -12,6 +12,7 @@ class ArticleFeed(Feed):
     m_name = models.CharField(max_length=15, null=False, blank=False, default="article")
     likes = GenericRelation(Liked, related_query_name="article")
     saved = GenericRelation(Saved, related_query_name="article")
+    comments = GenericRelation(Comment, related_query_name="article")
 
     class Meta:
         verbose_name_plural = "articles feed"

@@ -129,7 +129,7 @@ class CommentSerializerMixin:
         return PostSerializer(instance.content_object).data
 
     def get_likes_count(self, instance):
-        instance.likes.count()
+        return instance.likes.count()
 
     def get_comments_count(self, instance):
-        instance.comments.count()
+        return instance.comments.count()

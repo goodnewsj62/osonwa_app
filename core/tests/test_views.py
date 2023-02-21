@@ -1,3 +1,5 @@
+import json
+
 from rest_framework.test import APIClient
 from django.urls import reverse
 
@@ -130,3 +132,73 @@ def test_search_like(db, post_a):
     assert resp.status_code == 200
     post_title = resp.data.get("results")[0].get("content_object").get("title")
     assert post_title == post_a.title
+
+
+def test_comments_list(db, comment_object):
+    client = APIClient()
+    url = (
+        reverse("core:comment-list")
+        + f"?type=post&id={comment_object.content_object.id}"
+    )
+
+    resp = client.get(url)
+
+    assert resp.status_code == 200
+    assert resp.data.get("results")[0].get("id") == comment_object.content_object.id
+
+
+def test_create_comment(db, post_a):
+    client = APIClient()
+    client.force_authenticate(post_a.author)
+    url = reverse("core:comment-list")
+
+    data = {
+        "object_id": post_a.id,
+        "type": "post",
+        "content": json.dumps(
+            {"delta": {"ops": [{"insert": "so here we go\n"}]}, "html": ""}
+        ),
+        "text_content": "friends with the monster",
+    }
+
+    resp = client.post(url, data=data)
+
+    assert resp.status_code in [201, 200]
+
+
+def test_create_comment_on_comment(db, comment_object, post):
+    client = APIClient()
+    client.force_authenticate(post.author)
+    url = reverse("core:comment-list")
+
+    data = {
+        "object_id": comment_object.id,
+        "type": "comment",
+        "content": json.dumps(
+            {"delta": {"ops": [{"insert": "so here we go\n"}]}, "html": ""}
+        ),
+        "text_content": "friends with the monster",
+    }
+
+    resp = client.post(url, data=data)
+    data["object_id"] = resp.data.get("id")
+    response = client.post(url, data=data)
+
+    assert resp.status_code in [201, 200]
+    assert response.status_code == 400
+
+
+def test_patch_comments(db, comment_object):
+    client = APIClient()
+    client.force_authenticate(comment_object.content_object.author)
+    url = reverse("core:comment-detail", kwargs={"pk": comment_object.id})
+
+    data = {
+        "content": json.dumps(
+            {"delta": {"ops": [{"insert": "so we go up\n"}]}, "html": ""}
+        ),
+        "text_content": "friends with the monster",
+    }
+
+    resp = client.patch(url, data=data)
+    assert resp.status_code == 200

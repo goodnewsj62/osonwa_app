@@ -136,7 +136,7 @@ class CommentView(viewsets.ModelViewSet):
         id_ = request.query_params.get("id")
         content_type = get_content_type(type_)
         queryset = self.get_queryset(content_type__pk=content_type.id, object_id=id_)
-        page = self.paginate_queryset(queryset, request, self)
+        page = self.paginate_queryset(queryset)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 

@@ -64,7 +64,7 @@ def get_for_news(tag_name):
     return get_queryset(NewsTag, tag_name), PostSerializer
 
 
-def get_content_type(self, type_):
+def get_content_type(type_):
     model = get_model_from_type(type_)
     return ContentType.objects.get_for_model(model)
 
