@@ -4,12 +4,12 @@ from pytest_factoryboy import register
 from ..models import Liked, Saved, Comment
 
 
-from news.factories import (
-    NewsFeedFactory,
-)
+from news.factories import NewsFeedFactory
+from articles_feed.factories import ArticleFeedFactory
 
 factory_name_list = [
     (NewsFeedFactory, "newsfeed"),
+    (ArticleFeedFactory, "articlefeed"),
     # more to be added
 ]
 

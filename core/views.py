@@ -205,20 +205,22 @@ class TrendingView(BaseAggApiView):
 
             article_qs = self.order_by_interactions(queryset)
             post_qs = self.order_by_interactions(Post.objects)
-            return post_qs.values_list(post_fields).union(
-                article_qs.values_list(article_fields)
+            return (
+                post_qs.values_list(*post_fields, named=True)
+                .union(article_qs.values_list(*article_fields, named=True))
+                .order_by("-date_published")
             )
         else:
             queryset = NewsFeed.objects
             if self.request.user.is_authenticated:
-                recommended = get_recommended_news_feed()
+                recommended = get_recommended_news_feed(self.request.user)
                 queryset = (
                     queryset.filter(id__in=recommended) if recommended else queryset
                 )
 
             return self.order_by_interactions(queryset)
 
-    def order_by_interactions(qs):
+    def order_by_interactions(self, qs):
         return qs.annotate(
             likes_count=Count("likes", distinct=True),
             comments_count=Count("comments", distinct=True),
@@ -228,7 +230,7 @@ class TrendingView(BaseAggApiView):
 class FreshView(BaseAggApiView):
     def get_queryset(self, type_):
         if type_ == "article":
-            queryset = ArticleFeed.objects.filter(date_published__qt=self.yesterday)
+            queryset = ArticleFeed.objects.filter(date_published__gt=self.yesterday)
             post_qs = Post.objects.filter(date_published__gt=self.yesterday)
             if self.request.user.is_authenticated:
                 recommended = get_recommended_article_feed(self.request.user)
@@ -238,13 +240,15 @@ class FreshView(BaseAggApiView):
 
             article_qs = queryset.order_by("-date_published")
             post_qs = post_qs.order_by("-date_published")
-            return post_qs.values_list(post_fields).union(
-                article_qs.values_list(article_fields)
+            return (
+                post_qs.values_list(*post_fields, named=True)
+                .union(article_qs.values_list(*article_fields, named=True))
+                .order_by("-date_published")
             )
         else:
-            queryset = NewsFeed.objects.filter(date_published__qt=self.yesterday)
+            queryset = NewsFeed.objects.filter(date_published__gt=self.yesterday)
             if self.request.user.is_authenticated:
-                recommended = get_recommended_news_feed()
+                recommended = get_recommended_news_feed(self.request.user)
                 queryset = (
                     queryset.filter(id__in=recommended) if recommended else queryset
                 )

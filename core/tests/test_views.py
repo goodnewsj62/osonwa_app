@@ -214,6 +214,17 @@ def test_news_list(db, newsfeed):
     assert resp.data.get("results")[0].get("id") == newsfeed.id
 
 
+def test_news_list_recommended(db, newsfeed, user_a):
+    client = APIClient()
+    url = reverse("core:news")
+    client.force_authenticate(user_a)
+
+    resp = client.get(url)
+
+    assert resp.status_code == 200
+    assert resp.data.get("results")[0].get("id") == newsfeed.id
+
+
 def test_news_detail(db, newsfeed):
     client = APIClient()
     url = reverse(
@@ -225,3 +236,54 @@ def test_news_detail(db, newsfeed):
 
     assert resp.status_code == 200
     assert resp.data.get("id") == newsfeed.id
+
+
+def test_trending_news(db, newsfeed):
+    client = APIClient()
+    url = reverse("core:trending") + f"?type=news"
+
+    resp = client.get(url)
+
+    assert resp.status_code == 200
+    assert resp.data.get("results")[0].get("id") == newsfeed.id
+
+
+def test_trending_news_recommended(db, newsfeed, user_a):
+    client = APIClient()
+    client.force_authenticate(user_a)
+    url = reverse("core:trending") + f"?type=news"
+
+    resp = client.get(url)
+
+    assert resp.status_code == 200
+    assert resp.data.get("results")[0].get("id") == newsfeed.id
+
+
+def test_fresh_news(db, newsfeed):
+    client = APIClient()
+    url = reverse("core:fresh") + f"?type=news"
+
+    resp = client.get(url)
+
+    assert resp.status_code == 200
+    assert resp.data.get("results")[0].get("id") == newsfeed.id
+
+
+def test_fresh_news_recommended(db, newsfeed, user_a):
+    client = APIClient()
+    client.force_authenticate(user_a)
+    url = reverse("core:fresh") + f"?type=news"
+
+    resp = client.get(url)
+
+    assert resp.status_code == 200
+    assert resp.data.get("results")[0].get("id") == newsfeed.id
+
+
+def test_banner_news(db, newsfeed, newsfeed_a):
+    client = APIClient()
+    url = reverse("core:banner")
+
+    resp = client.get(url)
+
+    assert resp.status_code == 200

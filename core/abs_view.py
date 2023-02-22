@@ -88,7 +88,7 @@ class BaseAggApiView(APIView, pagination.PageNumberPagination):
         page = self.paginate_queryset(queryset, request, self)
         serializer_class = self.get_serializer_class(type_)
         serializer = serializer_class(page, many=True, context={"request": request})
-        self.get_paginated_response(serializer.data)
+        return self.get_paginated_response(serializer.data)
 
     def get_serializer_class(self, type_):
         return ArticleUnionSerializer if type_ == "article" else PostSerializer

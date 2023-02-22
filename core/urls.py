@@ -6,6 +6,10 @@ from .views import (
     SavedView,
     CommentView,
     NewsView,
+    TagsView,
+    TrendingView,
+    FreshView,
+    banner_news,
     is_liked,
     is_saved,
     search_saved,
@@ -29,6 +33,10 @@ urlpatterns = [
     path("search/like/", search_like, name="search_liked"),
     path("news/", news_list, name="news"),
     path("news/<str:slug_title>/<str:post_id>/", news_detail, name="news_detail"),
+    path("trending/", TrendingView.as_view(), name="trending"),
+    path("fresh/", FreshView.as_view(), name="fresh"),
+    path("tags/", TagsView.as_view(), name="tags"),
+    path("top-news/", banner_news, name="banner"),
 ]
 
 urlpatterns += router.urls
