@@ -9,7 +9,7 @@ from articles_feed.models import ArticleFeed, ArticleTag
 from news.models import NewsFeed, NewsTag
 from blog.models import Post, Tags
 from osonwa.constants import article_fields, post_fields
-from .drf_helpers import PostSerializer, TagPostSerializer
+from .drf_helpers import PostSerializer, ArticleUnionSerializer
 from .models import Comment
 
 
@@ -57,7 +57,7 @@ def get_for_article(tag_name):
         **article_fields, named=True
     )
     post_qs = get_queryset(Tags, tag_name).values_list(**post_fields, named=True)
-    return post_qs.union(article_qs).order_by("-date_published"), TagPostSerializer
+    return post_qs.union(article_qs).order_by("-date_published"), ArticleUnionSerializer
 
 
 def get_for_news(tag_name):

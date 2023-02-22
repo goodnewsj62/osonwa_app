@@ -5,6 +5,8 @@ from account.external_serializer import UserSerializer
 
 from osonwa.constants import post_fields
 from news.models import NewsFeed
+from blog.models import Post
+from account.external_serializer import UserSerializer
 from articles_feed.models import ArticleFeed
 from .models import Comment
 
@@ -83,18 +85,45 @@ class PostSerializer(serializers.Serializer):
         return not hasattr(instance, "gid")
 
 
-class TagPostSerializer(serializers.BaseSerializer):
+class ArticleUnionSerializer(serializers.BaseSerializer):
     def to_representation(self, instance):
         resp = OrderedDict()
+        model = {"post": Post, "article": ArticleFeed}[instance.m_name]
+        m_instance = model.objects.get(id=instance.id)
 
         for field in post_fields:
             resp[field] = getattr(instance, field, None)
 
-        resp["publisher"] = instance.author__username
-        resp["pub_image"] = instance.author__profile__image
-        resp.pop("author__username")
-        resp.pop("author__profile__image")
+        if instance.m_name != "article":
+            resp["publisher"] = UserSerializer(m_instance.author).data
+        else:
+            resp["publisher"] = resp.pop("author__username", "")
+
+        resp["pub_image"] = resp.pop("author__profile__image", "")
+        resp["content"] = resp.pop("text_content")
+        resp["image"] = resp.pop("cover_image")
+        resp["tags"] = (
+            list(m_instance.tags.values()) if hasattr(instance, "tags") else []
+        )
+        resp["likes"] = m_instance.likes.count()
+        resp["is_liked"] = self.get_is_liked(m_instance)
+        resp["is_saved"] = self.get_is_saved(m_instance)
+        resp["is_post"] = m_instance.m_name == "post"
+        resp["comments"] = m_instance.comments.count()
+
         return resp
+
+    def get_is_liked(self, instance):
+        request = self.context.get("request")
+        if request and request.user.pk:
+            return instance.likes.filter(user__pk=request.user.pk).exists()
+        return False
+
+    def get_is_saved(self, instance):
+        request = self.context.get("request")
+        if request and request.user.pk:
+            return instance.saved.filter(user__pk=request.user.pk).exists()
+        return False
 
 
 class CommentSerializerExt(serializers.ModelSerializer):

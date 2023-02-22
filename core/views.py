@@ -1,17 +1,22 @@
+from datetime import timedelta
+
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import APIView, permission_classes, api_view, action
 from rest_framework import permissions, pagination, viewsets
 from rest_framework.response import Response
-from django.db.models import Q
+from django.db.models import Q, Count
+from django.utils import timezone
 
 from utils.permissions import IsOwner, LockOut
 from news.models import NewsFeed
+from blog.models import Post
 from articles_feed.models import ArticleFeed
-from .abs_view import BaseReactionView
+from osonwa.constants import post_fields, article_fields
+from .abs_view import BaseReactionView, BaseAggApiView
 from .models import Liked, Saved, Comment
 from .drf_helpers import PostSerializer
 from .serializers import LikedSerializer, SavedSerializer, CommentSerializer
-from .recommended import get_recommended_news_feed
+from .recommended import get_recommended_news_feed, get_recommended_article_feed
 from .helpers import (
     get_content_query,
     get_resource_if_exists,
@@ -110,7 +115,7 @@ class TagsView(APIView, pagination.PageNumberPagination):
         type_ = request.query_params.get("type", "article")
         queryset, serializer = get_queryset_and_serializer(type_, tag_name)
         page = self.paginate_queryset(queryset, request, self)
-        serializer = serializer(page)
+        serializer = serializer(page, many=True, context={"request": request})
         return self.get_paginated_response(serializer.data)
 
 
@@ -150,7 +155,6 @@ class CommentView(viewsets.ModelViewSet):
 
 
 class NewsView(viewsets.ModelViewSet):
-    serializer_class = PostSerializer
     lookup_field = ["slug_title", "post_id"]
 
     def get_object(self):
@@ -169,6 +173,10 @@ class NewsView(viewsets.ModelViewSet):
             return [LockOut()]
         return [permissions.AllowAny()]
 
+    def get_serializer(self, *args, **kwargs):
+        ctx = {"request": self.request}
+        return PostSerializer(*args, **kwargs, context=ctx)
+
     def get_queryset(self):
         queryset = NewsFeed.objects.prefetch_related(
             "tags", "comments", "likes"
@@ -179,3 +187,81 @@ class NewsView(viewsets.ModelViewSet):
             queryset = queryset.filter(id__in=recommended) if recommended else queryset
             return queryset
         return queryset
+
+
+class TrendingView(BaseAggApiView):
+    def get_queryset(self, type_):
+        """
+        order queryset by date_published and interactions rate(comments and likes)...
+        if user is authenticated recommended post are retrieved for the user
+        """
+        if type_ == "article":
+            queryset = ArticleFeed.objects
+            if self.request.user.is_authenticated:
+                recommended = get_recommended_article_feed(self.request.user)
+                queryset = (
+                    queryset.filter(id__in=recommended) if recommended else queryset
+                )
+
+            article_qs = self.order_by_interactions(queryset)
+            post_qs = self.order_by_interactions(Post.objects)
+            return post_qs.values_list(post_fields).union(
+                article_qs.values_list(article_fields)
+            )
+        else:
+            queryset = NewsFeed.objects
+            if self.request.user.is_authenticated:
+                recommended = get_recommended_news_feed()
+                queryset = (
+                    queryset.filter(id__in=recommended) if recommended else queryset
+                )
+
+            return self.order_by_interactions(queryset)
+
+    def order_by_interactions(qs):
+        return qs.annotate(
+            likes_count=Count("likes", distinct=True),
+            comments_count=Count("comments", distinct=True),
+        ).order_by("-date_published", "-likes_count", "-comments_count")
+
+
+class FreshView(BaseAggApiView):
+    def get_queryset(self, type_):
+        if type_ == "article":
+            queryset = ArticleFeed.objects.filter(date_published__qt=self.yesterday)
+            post_qs = Post.objects.filter(date_published__gt=self.yesterday)
+            if self.request.user.is_authenticated:
+                recommended = get_recommended_article_feed(self.request.user)
+                queryset = (
+                    queryset.filter(id__in=recommended) if recommended else queryset
+                )
+
+            article_qs = queryset.order_by("-date_published")
+            post_qs = post_qs.order_by("-date_published")
+            return post_qs.values_list(post_fields).union(
+                article_qs.values_list(article_fields)
+            )
+        else:
+            queryset = NewsFeed.objects.filter(date_published__qt=self.yesterday)
+            if self.request.user.is_authenticated:
+                recommended = get_recommended_news_feed()
+                queryset = (
+                    queryset.filter(id__in=recommended) if recommended else queryset
+                )
+
+            return queryset.order_by("-date_published")
+
+    @property
+    def yesterday(self):
+        return timezone.now() - timedelta(days=2)
+
+
+@api_view(["get"])
+def banner_news(request, *args, **kwargs):
+    queryset = NewsFeed.objects.annotate(
+        likes_count=Count("likes", distinct=True),
+        comments_count=Count("comments", distinct=True),
+    ).order_by("-date_published", "-likes_count", "-comments_count")[:7]
+
+    serializer = PostSerializer(queryset, many=True, context={"request": request})
+    return Response(serializer.data)

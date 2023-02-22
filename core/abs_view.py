@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from .helpers import get_content_query, get_resource_if_exists
 from .models import Liked, Saved
 from .serializers import LikedSerializer, SavedSerializer
+from .drf_helpers import PostSerializer, ArticleUnionSerializer
 
 
 class BaseReactionView(APIView, pagination.PageNumberPagination):
@@ -78,3 +79,19 @@ class BaseReactionView(APIView, pagination.PageNumberPagination):
     def get_serializer(self, typeof_serializer, *args, **kwargs):
         serializers = {"like": LikedSerializer, "save": SavedSerializer}
         return serializers[typeof_serializer](*args, **kwargs)
+
+
+class BaseAggApiView(APIView, pagination.PageNumberPagination):
+    def get(self, request, *args, **kwargs):
+        type_ = request.query_params.get("type", "article")
+        queryset = self.get_queryset(type_)
+        page = self.paginate_queryset(queryset, request, self)
+        serializer_class = self.get_serializer_class(type_)
+        serializer = serializer_class(page, many=True, context={"request": request})
+        self.get_paginated_response(serializer.data)
+
+    def get_serializer_class(self, type_):
+        return ArticleUnionSerializer if type_ == "article" else PostSerializer
+
+    def get_queryset(self, type_):
+        raise NotImplementedError("overide get_queryset")
