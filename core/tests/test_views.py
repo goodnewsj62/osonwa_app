@@ -229,7 +229,7 @@ def test_news_detail(db, newsfeed):
     client = APIClient()
     url = reverse(
         "core:news_detail",
-        kwargs={"slug_title": newsfeed.slug_title, "post_id": newsfeed.gid},
+        kwargs={"slug_title": newsfeed.slug_title, "pk": newsfeed.id},
     )
 
     resp = client.get(url)

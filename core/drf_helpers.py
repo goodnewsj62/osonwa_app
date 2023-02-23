@@ -27,6 +27,8 @@ class PostSerializer(serializers.Serializer):
     is_saved = serializers.SerializerMethodField()
     is_post = serializers.SerializerMethodField("is_post_check")
     comments = serializers.SerializerMethodField()
+    source_url = serializers.SerializerMethodField()
+
 
     def get_attr_if_exists(self, instance, attrs, default_attr=""):
         for attr in attrs:
@@ -38,6 +40,11 @@ class PostSerializer(serializers.Serializer):
         return self.get_attr_if_exists(
             instance, ["description", "text_content"], "content"
         )
+    
+    def get_source_url(self,instance):
+        if hasattr(instance, "gid"):
+            return instance.link
+        return None
 
     def get_publisher(self, instance):
         value = self.get_attr_if_exists(instance, ["author", "website"], "publisher")
@@ -105,6 +112,7 @@ class ArticleUnionSerializer(serializers.BaseSerializer):
         resp["tags"] = (
             list(m_instance.tags.values()) if hasattr(instance, "tags") else []
         )
+        resp["source_url"] = m_instance.link if m_instance.m_name == "article" else None
         resp["likes"] = m_instance.likes.count()
         resp["is_liked"] = self.get_is_liked(m_instance)
         resp["is_saved"] = self.get_is_saved(m_instance)

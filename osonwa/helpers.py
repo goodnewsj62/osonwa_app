@@ -33,7 +33,7 @@ def get_auth_token(user):
 def vendor_fromurl(url):
     parsed_url = urlsplit(url)
     netloc = parsed_url.netloc
-    netloc = re.sub(r"(www)\.", "", netloc)
+    netloc = re.sub(r"(www|feeds)\.", "", netloc)
     return re.sub(r"\.(com|org|net|blog)", "", netloc)
 
 
@@ -200,7 +200,7 @@ def resizeImage(image, width_size=400, format_: str = "jpeg"):
     return thumb_io
 
 
-def inmemory_wrapper(image, default_path: str,width_size=500):
+def inmemory_wrapper(image, default_path: str, width_size=500):
     if (not image) or image == default_path:
         return image
 

@@ -155,7 +155,7 @@ class CommentView(viewsets.ModelViewSet):
 
 
 class NewsView(viewsets.ModelViewSet):
-    lookup_field = ["slug_title", "post_id"]
+    lookup_field = ["slug_title", "pk"]
 
     def get_object(self):
         query_set = self.get_queryset()
@@ -163,7 +163,6 @@ class NewsView(viewsets.ModelViewSet):
         for field in self.lookup_field:
             filters[field] = self.kwargs[field]
 
-        filters["gid"] = filters.pop("post_id")
         obj = get_object_or_404(query_set, **filters)
         self.check_object_permissions(self.request, obj)
         return obj
@@ -262,10 +261,14 @@ class FreshView(BaseAggApiView):
 
 @api_view(["get"])
 def banner_news(request, *args, **kwargs):
-    queryset = NewsFeed.objects.annotate(
-        likes_count=Count("likes", distinct=True),
-        comments_count=Count("comments", distinct=True),
-    ).order_by("-date_published", "-likes_count", "-comments_count")[:7]
+    queryset = (
+        NewsFeed.objects.exclude(image_url=None)
+        .annotate(
+            likes_count=Count("likes", distinct=True),
+            comments_count=Count("comments", distinct=True),
+        )
+        .order_by("-date_published", "-likes_count", "-comments_count")[:7]
+    )
 
     serializer = PostSerializer(queryset, many=True, context={"request": request})
     return Response(serializer.data)
