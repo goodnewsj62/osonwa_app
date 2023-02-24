@@ -49,6 +49,7 @@ class CommentSerializer(serializers.ModelSerializer, CommentSerializerMixin):
     post_info = serializers.SerializerMethodField()
     likes = serializers.SerializerMethodField("get_likes_count")
     comments = serializers.SerializerMethodField("get_comments_count")
+    is_liked = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
@@ -80,6 +81,12 @@ class CommentSerializer(serializers.ModelSerializer, CommentSerializerMixin):
         attrs.pop("type")
 
         return super().validate(attrs)
+
+    def get_is_liked(self, instance):
+        request = self.context.get("request")
+        if request and request.user.pk:
+            return instance.likes.filter(user__pk=request.user.pk).exists()
+        return False
 
     def to_internal_value(self, data):
         return_val = super().to_internal_value(data)

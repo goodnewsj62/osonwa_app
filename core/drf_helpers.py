@@ -29,7 +29,6 @@ class PostSerializer(serializers.Serializer):
     comments = serializers.SerializerMethodField()
     source_url = serializers.SerializerMethodField()
 
-
     def get_attr_if_exists(self, instance, attrs, default_attr=""):
         for attr in attrs:
             if hasattr(instance, attr):
@@ -37,11 +36,12 @@ class PostSerializer(serializers.Serializer):
         return getattr(instance, default_attr if default_attr else attrs[0])
 
     def get_content(self, instance):
-        return self.get_attr_if_exists(
+        content = self.get_attr_if_exists(
             instance, ["description", "text_content"], "content"
         )
-    
-    def get_source_url(self,instance):
+        return content if content else " "
+
+    def get_source_url(self, instance):
         if hasattr(instance, "gid"):
             return instance.link
         return None
@@ -107,7 +107,7 @@ class ArticleUnionSerializer(serializers.BaseSerializer):
             resp["publisher"] = resp.pop("author__username", "")
 
         resp["pub_image"] = resp.pop("author__profile__image", "")
-        resp["content"] = resp.pop("text_content")
+        resp["content"] = resp.pop("text_content") if resp.get("text_content") else " "
         resp["image"] = resp.pop("cover_image")
         resp["tags"] = (
             list(m_instance.tags.values()) if hasattr(instance, "tags") else []

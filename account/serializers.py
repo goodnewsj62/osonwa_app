@@ -53,8 +53,9 @@ class ProfileSerializer(serializers.ModelSerializer):
         user_data = validated_data.pop("user", {})
         user = instance.user
 
-        setattr_if_exists(user, user_data)
-        user.save()
+        serializer = UserSerializer(instance=user, data=user_data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
 
         setattr_if_exists(instance, validated_data)
         instance.save()
@@ -66,9 +67,9 @@ class ProfileSerializer(serializers.ModelSerializer):
         for field, value in data.items():
             if field in ["username", "first_name", "last_name"]:
                 user_data[field] = value
-        data = data.copy() if isinstance(data, QueryDict) else data
-        data["user"] = user_data
-        return super().to_internal_value(data)
+        to_internal = super().to_internal_value(data)
+        to_internal["user"] = user_data
+        return to_internal
 
     def to_representation(self, instance):
         resp = super().to_representation(instance)

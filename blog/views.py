@@ -89,7 +89,7 @@ class PostBundleViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         query_set = Bundle.objects.select_related("created_by")
-        if self.action in ["list"]:
+        if self.action in ["list", "retrieve"]:
             return query_set
         return query_set.filter(created_by=self.request.user)
 

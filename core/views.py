@@ -83,7 +83,11 @@ def search_like(request, *args, **kwargs):
     content_type_query = get_content_query(type_)
     queryset = (
         request.user.liked.filter(content_type_query)
-        .filter(Q(article__title__icontains=query) | Q(post__title__icontains=query))
+        .filter(
+            Q(article__title__icontains=query)
+            | Q(post__title__icontains=query)
+            | Q(news__title__icontains=query)
+        )
         .all()
     )
     paginator = pagination.PageNumberPagination()
@@ -100,7 +104,11 @@ def search_saved(request, *args, **kwargs):
     content_type_query = get_content_query(type_)
     queryset = (
         request.user.saved.filter(content_type_query)
-        .filter(Q(article__title__icontains=query) | Q(post__title__icontains=query))
+        .filter(
+            Q(article__title__icontains=query)
+            | Q(post__title__icontains=query)
+            | Q(news__title__icontains=query)
+        )
         .all()
     )
     paginator = pagination.PageNumberPagination()
