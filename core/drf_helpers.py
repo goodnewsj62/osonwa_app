@@ -26,6 +26,7 @@ class PostSerializer(serializers.Serializer):
     is_liked = serializers.SerializerMethodField()
     is_saved = serializers.SerializerMethodField()
     is_post = serializers.SerializerMethodField("is_post_check")
+    instance_type = serializers.SerializerMethodField()
     comments = serializers.SerializerMethodField()
     source_url = serializers.SerializerMethodField()
 
@@ -88,6 +89,12 @@ class PostSerializer(serializers.Serializer):
     def get_post_id(self, instance):
         return self.get_attr_if_exists(instance, ["post_id", "gid"])
 
+    def get_instance_type(self, instance):
+        try:
+            return instance.m_name
+        except AttributeError:
+            return "news"
+
     def is_post_check(self, instance):
         return not hasattr(instance, "gid")
 
@@ -117,6 +124,9 @@ class ArticleUnionSerializer(serializers.BaseSerializer):
         resp["is_liked"] = self.get_is_liked(m_instance)
         resp["is_saved"] = self.get_is_saved(m_instance)
         resp["is_post"] = m_instance.m_name == "post"
+        resp["instance_type"] = (
+            m_instance.m_name if hasattr(m_instance.m_name) else "news"
+        )
         resp["comments"] = m_instance.comments.count()
 
         return resp
@@ -153,6 +163,7 @@ class CommentSerializerMixin:
             (NewsFeed, PostSerializer),
             (ArticleFeed, PostSerializer),
             (Comment, CommentSerializerExt),
+            (Post, PostSerializer),
         ]
         for model, serializers in instance_possibilites:
             if isinstance(instance.content_object, model):

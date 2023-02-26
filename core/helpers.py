@@ -75,5 +75,5 @@ def is_child_to_comment(comment):
 
 def set_mentions(mentions: list, instance):
     User = get_user_model()
-    users = User.objects.filter(username__in=[mentions]).all()
+    users = User.objects.filter(username__in=mentions).all()
     instance.mentions.set(list(users))

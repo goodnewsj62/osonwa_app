@@ -2,7 +2,7 @@ from datetime import timedelta
 
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import APIView, permission_classes, api_view, action
-from rest_framework import permissions, pagination, viewsets
+from rest_framework import permissions, pagination, viewsets, status
 from rest_framework.response import Response
 from django.db.models import Q, Count
 from django.utils import timezone
@@ -158,6 +158,22 @@ class CommentView(viewsets.ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
+    @action(methods=["get"], detail=False, url_name="ucomments", url_path="ucomments")
+    def usercomments(self, request, *args, **kwargs):
+        username = request.query_params.get("username")
+        if not username:
+            message = "please include userame in url query param"
+            return Response({"error": message}, status=status.HTTP)
+        queryset = (
+            self.get_queryset()
+            .filter(created_by__username=username)
+            .order_by("-date_created")
+            .all()
+        )
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
     def perform_create(self, serializer):
         return serializer.save(created_by=self.request.user)
 
@@ -280,3 +296,37 @@ def banner_news(request, *args, **kwargs):
 
     serializer = PostSerializer(queryset, many=True, context={"request": request})
     return Response(serializer.data)
+
+
+class ArticleView(viewsets.ModelViewSet):
+    lookup_field = ["slug_title", "pk"]
+
+    def get_object(self):
+        query_set = self.get_queryset()
+        filters = {}
+        for field in self.lookup_field:
+            filters[field] = self.kwargs[field]
+
+        obj = get_object_or_404(query_set, **filters)
+        self.check_object_permissions(self.request, obj)
+        return obj
+
+    def get_permissions(self):
+        if not self.request.method in permissions.SAFE_METHODS:
+            return [LockOut()]
+        return [permissions.AllowAny()]
+
+    def get_serializer(self, *args, **kwargs):
+        ctx = {"request": self.request}
+        return PostSerializer(*args, **kwargs, context=ctx)
+
+    def get_queryset(self):
+        queryset = ArticleFeed.objects.prefetch_related(
+            "tags", "comments", "likes"
+        ).order_by("-date_published")
+        is_authenticated = self.request.user.is_authenticated
+        if self.action == "list" and is_authenticated:
+            recommended = get_recommended_news_feed(self.request.user)
+            queryset = queryset.filter(id__in=recommended) if recommended else queryset
+            return queryset
+        return queryset

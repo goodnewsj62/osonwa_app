@@ -5,7 +5,7 @@ from utils.gen_helpers import setattr_if_exists
 from .models import Saved, Liked, Comment
 from .helpers import is_child_to_comment, get_model_from_type, set_mentions
 from .drf_helpers import PostSerializer, CommentSerializerMixin
-from .relations import ContentTypeRelatedField
+from .relations import ContentTypeRelatedField, MentionsRelated
 
 
 class SavedSerializer(serializers.ModelSerializer):
@@ -50,6 +50,7 @@ class CommentSerializer(serializers.ModelSerializer, CommentSerializerMixin):
     likes = serializers.SerializerMethodField("get_likes_count")
     comments = serializers.SerializerMethodField("get_comments_count")
     is_liked = serializers.SerializerMethodField()
+    mentions = MentionsRelated(required=False)
 
     class Meta:
         model = Comment
@@ -97,7 +98,6 @@ class CommentSerializer(serializers.ModelSerializer, CommentSerializerMixin):
         resp = super().to_representation(instance)
         resp["content"] = instance.content.delta
         resp["html"] = instance.content.html
-        resp["mentions"] = UserSerializer(instance.mentions.all(), many=True).data
         return resp
 
     def create(self, validated_data):
