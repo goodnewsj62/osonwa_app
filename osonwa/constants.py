@@ -135,6 +135,14 @@ SCRAPE_URLS = [
 ]
 
 
+general_tags = [
+    "web development",
+    "cyber security",
+    "game development",
+    "3d printing",
+    "agile",
+]
+
 post_fields = [
     "id",
     "post_id",

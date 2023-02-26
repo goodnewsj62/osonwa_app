@@ -58,6 +58,9 @@ def extract_info(dbkey_url_tuple):
 
 
 def get_html_bytes_str(db_model):
+    if db_model.string_blob:
+        return db_model.string_blob
+
     try:
         html_bytes_str = db_model.byte_blob.tobytes()
     except AttributeError:
