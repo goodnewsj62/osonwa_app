@@ -48,20 +48,20 @@ def get_queryset_and_serializer(type_, tag_name):
 
 
 def get_queryset(model, tag_name):
-    return model.objects.filter(tag_name=tag_name).first().posts.all()
+    return model.objects.filter(tag__tag_name=tag_name).all()
 
 
 def get_for_article(tag_name):
 
-    article_qs = get_queryset(ArticleTag, tag_name).values_list(
-        **article_fields, named=True
+    article_qs = get_queryset(ArticleFeed, tag_name).values_list(
+        *article_fields, named=True
     )
-    post_qs = get_queryset(Tags, tag_name).values_list(**post_fields, named=True)
+    post_qs = get_queryset(Post, tag_name).values_list(*post_fields, named=True)
     return post_qs.union(article_qs).order_by("-date_published"), ArticleUnionSerializer
 
 
 def get_for_news(tag_name):
-    return get_queryset(NewsTag, tag_name), PostSerializer
+    return get_queryset(NewsFeed, tag_name), PostSerializer
 
 
 def get_content_type(type_):

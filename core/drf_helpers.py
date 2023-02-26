@@ -117,7 +117,7 @@ class ArticleUnionSerializer(serializers.BaseSerializer):
         resp["content"] = resp.pop("text_content") if resp.get("text_content") else " "
         resp["image"] = resp.pop("cover_image")
         resp["tags"] = (
-            list(m_instance.tags.values()) if hasattr(instance, "tags") else []
+            list(m_instance.tags.values()) if hasattr(m_instance, "tags") else []
         )
         resp["source_url"] = m_instance.link if m_instance.m_name == "article" else None
         resp["likes"] = m_instance.likes.count()
@@ -125,7 +125,7 @@ class ArticleUnionSerializer(serializers.BaseSerializer):
         resp["is_saved"] = self.get_is_saved(m_instance)
         resp["is_post"] = m_instance.m_name == "post"
         resp["instance_type"] = (
-            m_instance.m_name if hasattr(m_instance.m_name) else "news"
+            m_instance.m_name if hasattr(m_instance, "m_name") else "news"
         )
         resp["comments"] = m_instance.comments.count()
 
