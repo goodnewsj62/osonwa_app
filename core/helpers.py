@@ -1,6 +1,10 @@
+import json
+from datetime import timedelta
+
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth import get_user_model
-from django.db.models import Q
+from django.db.models import Q, Count
+from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -11,6 +15,7 @@ from blog.models import Post, Tags
 from osonwa.constants import article_fields, post_fields
 from .drf_helpers import PostSerializer, ArticleUnionSerializer
 from .models import Comment
+from .recommended import get_recommended_article_feed
 
 
 def get_model_from_type(type_):
@@ -77,3 +82,48 @@ def set_mentions(mentions: list, instance):
     User = get_user_model()
     users = User.objects.filter(username__in=mentions).all()
     instance.mentions.set(list(users))
+
+
+def get_articles_qs(params: str, type_: str, request):
+    key_list = json.loads(params)
+    fil = {
+        "for you": for_you_qs(type_, request),
+        "recent": recent_qs(type_),
+        "popular": popular_qs(type_),
+    }
+
+    qs = Post.objects if type_ == "internal" else ArticleFeed.objects
+
+    for key in key_list:
+        qs = fil[key](qs)
+
+    qs = qs.order_by("-date_published")
+    return qs
+
+
+def for_you_qs(type_, request):
+    def _fyp(qs):
+        if type_ == "aggregate" and request.user.is_authenticated:
+            recommended = get_recommended_article_feed(request.user)
+            return qs.filter(id__in=recommended) if recommended else qs
+        return qs
+
+    return _fyp
+
+
+def recent_qs(type_):
+    def _recent(qs):
+        two_days_back = timezone.now() - timedelta(days=2)
+        return qs.filter(date_published__gt=two_days_back)
+
+    return _recent
+
+
+def popular_qs(type_):
+    def popular(qs):
+        return qs.annotate(
+            likes_count=Count("likes", distinct=True),
+            comments_count=Count("comments", distinct=True),
+        ).order_by("-date_published", "-likes_count", "-comments_count")
+
+    return popular

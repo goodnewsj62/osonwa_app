@@ -14,7 +14,7 @@ from articles_feed.models import ArticleFeed
 from osonwa.constants import post_fields, article_fields
 from .abs_view import BaseReactionView, BaseAggApiView
 from .models import Liked, Saved, Comment
-from .drf_helpers import PostSerializer
+from .drf_helpers import PostSerializer, ArticleUnionSerializer
 from .serializers import LikedSerializer, SavedSerializer, CommentSerializer
 from .recommended import get_recommended_news_feed, get_recommended_article_feed
 from .helpers import (
@@ -22,6 +22,7 @@ from .helpers import (
     get_resource_if_exists,
     get_queryset_and_serializer,
     get_content_type,
+    get_articles_qs,
 )
 
 # Create your views here.
@@ -330,3 +331,51 @@ class ArticleView(viewsets.ModelViewSet):
             queryset = queryset.filter(id__in=recommended) if recommended else queryset
             return queryset
         return queryset
+
+    def list(self, request, *args, **kwargs):
+        filter_params = request.query_params.get("filter", "[]")
+        import json
+
+        type_ = request.query_params.get("type", "internal")
+        qs = get_articles_qs(filter_params, type_, request)
+        page = self.paginate_queryset(qs)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(methods=["get"], detail=False, url_name="search", url_path="search")
+    def search(self, request, *args, **kwargs):
+        search_kw = request.query_params.get("q")
+        type_ = request.query_params.get("type")
+        if type_ == "internal":
+            qs = Post.objects.filter(title__icontains=search_kw).order_by(
+                "-date_published"
+            )
+        else:
+            qs = (
+                self.get_queryset()
+                .filter(title__icontains=search_kw)
+                .order_by("-date_published")
+            )
+
+        page = self.paginate_queryset(qs)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+
+class SearchView(APIView, pagination.PageNumberPagination):
+    def get(self, request, *args, **kwargs):
+        search = request.query_params.get("q")
+        article_qs = ArticleFeed.objects.filter(title__icontains=search).values_list(
+            *article_fields, named=True
+        )
+        news_qs = NewsFeed.objects.filter(title__icontains=search).values_list(
+            *article_fields, named=True
+        )
+        post_qs = Post.objects.filter(title__icontains=search).values_list(
+            *post_fields, named=True
+        )
+
+        queryset = post_qs.union(article_qs, news_qs).order_by("-date_published")
+        page = self.paginate_queryset(queryset, request, self)
+        serializer = ArticleUnionSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)

@@ -9,6 +9,7 @@ from core.models import Liked, Saved, Comment
 
 
 class NewsFeed(Feed):
+    m_name = models.CharField(max_length=15, null=False, blank=False, default="news")
     likes = GenericRelation(Liked, related_query_name="news")
     saved = GenericRelation(Saved, related_query_name="news")
     comments = GenericRelation(Comment, related_query_name="news")

@@ -102,13 +102,15 @@ class PostSerializer(serializers.Serializer):
 class ArticleUnionSerializer(serializers.BaseSerializer):
     def to_representation(self, instance):
         resp = OrderedDict()
-        model = {"post": Post, "article": ArticleFeed}[instance.m_name]
+        model = {"post": Post, "article": ArticleFeed, "news": NewsFeed}[
+            instance.m_name
+        ]
         m_instance = model.objects.get(id=instance.id)
 
         for field in post_fields:
             resp[field] = getattr(instance, field, None)
 
-        if instance.m_name != "article":
+        if instance.m_name == "post":
             resp["publisher"] = UserSerializer(m_instance.author).data
         else:
             resp["publisher"] = resp.pop("author__username", "")
@@ -124,9 +126,8 @@ class ArticleUnionSerializer(serializers.BaseSerializer):
         resp["is_liked"] = self.get_is_liked(m_instance)
         resp["is_saved"] = self.get_is_saved(m_instance)
         resp["is_post"] = m_instance.m_name == "post"
-        resp["instance_type"] = (
-            m_instance.m_name if hasattr(m_instance, "m_name") else "news"
-        )
+        resp["instance_type"] = m_instance.m_name
+
         resp["comments"] = m_instance.comments.count()
 
         return resp
