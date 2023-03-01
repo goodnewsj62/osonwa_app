@@ -5,7 +5,7 @@ from osonwa.tasks import (
 
 from celery import chain, chord, group, shared_task
 
-from news.models import NewsFeed, RawFeed
+from news.models import NewsFeed, RawFeed, NewsTag
 from osonwa.helpers import process_entries, save_feed
 from osonwa.constants import NEWS_RSS_FEED_URLS
 

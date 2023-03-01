@@ -11,6 +11,7 @@ from .views import (
     FreshView,
     ArticleView,
     SearchView,
+    WebsiteView,
     banner_news,
     is_liked,
     is_saved,
@@ -47,6 +48,7 @@ urlpatterns = [
     path("tags/", TagsView.as_view(), name="tags"),
     path("top-news/", banner_news, name="banner"),
     path("search/", SearchView.as_view(), name="search"),
+    path("website/", WebsiteView.as_view(), name="website"),
 ]
 
 urlpatterns += router.urls

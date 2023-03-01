@@ -223,3 +223,36 @@ class ChangePasswordSerializer(serializers.Serializer):
 class InterestSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     name = serializers.CharField()
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    owner = UserSerializer(required=False)
+    action_by = UserSerializer(required=False)
+    content_type = serializers.SerializerMethodField()
+    content_object = serializers.SerializerMethodField()
+    read_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Notification
+        fields = "__all__"
+        extra_kwargs = {}
+
+    def get_content_type(self, instance):
+        return instance.content_type.model_class().__name__.lower()
+
+    def get_content_object(self, instance):
+        name = instance.content_type.model_class().__name__.lower()
+        if name == "post":
+            post = instance.content_object
+            return {
+                "id": post.id,
+                "post_id": post.post_id,
+                "slug_title": post.slug_title,
+                "name": name,
+            }
+        elif name == "comment":
+            comment = instance.content_object
+            return {"id": comment.id, "name": name}
+
+    def get_read_count(self, instance):
+        return Notification.objects.filter(owner=instance.owner, is_read=False).count()

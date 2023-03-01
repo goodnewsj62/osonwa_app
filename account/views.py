@@ -4,7 +4,7 @@ from urllib.parse import unquote
 from django.urls import reverse
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
-from rest_framework import viewsets, status, permissions
+from rest_framework import viewsets, status, permissions, pagination
 from rest_framework.response import Response
 from rest_framework.decorators import action, api_view, APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -314,3 +314,17 @@ class InterestsDetailView(APIView):
         interests = Interest.objects.filter(name__in=interests).all()
 
         return interests
+
+
+class NotificationView(APIView, pagination.PageNumberPagination):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        qs = Notification.objects.filter(owner=request.user)
+        qs = qs.filter(is_read=False) if request.query_params.get("unread") else qs
+        page = self.paginate_queryset(qs.order_by("-date_created"), request, self)
+        ctx = {"request": request}
+        serializer = NotificationSerializer(page, many=True, context=ctx)
+        resp = self.get_paginated_response(serializer.data)
+        qs.update(is_read=True)
+        return resp

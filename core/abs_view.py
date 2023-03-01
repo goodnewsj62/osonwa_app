@@ -3,7 +3,7 @@ from rest_framework import status, pagination
 from rest_framework.decorators import APIView
 from rest_framework.response import Response
 
-from .helpers import get_content_query, get_resource_if_exists
+from .helpers import get_content_query, get_resource_if_exists, create_like_notification
 from .models import Liked, Saved
 from .serializers import LikedSerializer, SavedSerializer
 from .drf_helpers import PostSerializer, ArticleUnionSerializer
@@ -48,6 +48,7 @@ class BaseReactionView(APIView, pagination.PageNumberPagination):
             return Response(self.get_response("remove", model_type))
 
         model.objects.create(user=request.user, content_object=post)
+        create_like_notification(creator=request.user, post=post)
         return Response(self.get_response("create", model_type))
 
     def remove_queryset_obj(self, model_type, post, obj):

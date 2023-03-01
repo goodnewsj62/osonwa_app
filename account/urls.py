@@ -13,6 +13,7 @@ from .views import (
     AccountProfileView,
     InterestsView,
     InterestsDetailView,
+    NotificationView,
 )
 
 app_name = "auth"
@@ -36,6 +37,7 @@ urlpatterns = [
     path("interests/<str:username>/", InterestsDetailView.as_view(), name="d_interest"),
     path("profile/", profile, name="auth_user_profile"),
     path("profile/<str:username>/", profile_view, name="profile"),
+    path("notification/", NotificationView.as_view(), name="notification"),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

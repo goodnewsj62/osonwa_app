@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
 
 from account.custom_manger import UserManager
 from osonwa.helpers import inmemory_wrapper
@@ -104,6 +106,7 @@ class Notification(models.Model):
     ACTIONS = [
         ("comment", "comment"),
         ("react", "react"),
+        ("mention", "mention"),
         ("recommendation", "recommendation"),
     ]
 
@@ -117,9 +120,10 @@ class Notification(models.Model):
 
     action_by = models.ForeignKey("account.User", null=True, on_delete=models.CASCADE)
     action = models.CharField(max_length=80, choices=ACTIONS, blank=False, null=False)
-    post_url = models.URLField(max_length=300)
-    backend_url = models.URLField(max_length=300)
-    post_content = models.TextField(null=True, blank=True)
+    post_url = models.URLField(max_length=300, null=True, blank=True)
+    content_type = models.OneToOneField(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveBigIntegerField()
+    content_object = GenericForeignKey()
     is_read = models.BooleanField(default=False)
     date_created = models.DateTimeField(auto_now_add=True)
 
@@ -132,8 +136,6 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"{self.owner.email}"
-
-
 
 
 class Interest(models.Model):

@@ -11,7 +11,8 @@ from rest_framework import status
 
 from articles_feed.models import ArticleFeed, ArticleTag
 from news.models import NewsFeed, NewsTag
-from blog.models import Post, Tags
+from blog.models import Post
+from account.models import Notification
 from osonwa.constants import article_fields, post_fields
 from .drf_helpers import PostSerializer, ArticleUnionSerializer
 from .models import Comment
@@ -127,3 +128,45 @@ def popular_qs(type_):
         ).order_by("-date_published", "-likes_count", "-comments_count")
 
     return popular
+
+
+def create_comment_notification(creator, comment):
+    content_type = comment.content_type
+    if content_type.model_class().__name__.lower() == "comment":
+        params = {
+            "action_by": creator,
+            "action": "mention",
+            "content_object": comment.content_object,
+        }
+        if creator.id != comment.content_object.created_by.id:
+            Notification.objects.create(
+                **params, action="comment", owner=comment.content_object.created_by
+            )
+
+        for user in comment.mentions.all():
+            Notification.objects.create(**params, owner=user)
+
+    elif content_type.model_class().__name__.lower() == "post":
+        Notification.objects.create(
+            action_by=creator,
+            action="comment",
+            content_object=comment.content_object,
+            owner=comment.content_object.author,
+        )
+
+
+def create_like_notification(creator, post):
+    if isinstance(post, Post):
+        Notification.objects.create(
+            action_by=creator,
+            action="react",
+            content_object=post,
+            owner=post.author,
+        )
+    elif isinstance(post, Comment):
+        Notification.objects.create(
+            action_by=creator,
+            action="react",
+            content_object=post,
+            owner=post.created_by,
+        )

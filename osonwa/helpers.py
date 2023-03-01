@@ -22,6 +22,7 @@ from PIL import Image
 from io import BytesIO
 
 from psycopg2 import DatabaseError
+from .constants import icon_url_from_source
 
 
 def get_auth_token(user):
@@ -57,7 +58,7 @@ def logo_from_web_url(url: str):
                     "User-Agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.82 Mobile Safari/537.36"
                 },
             ).content
-        ).get_icon()
+        ).get_icon(url)
 
     return logo_url
 
@@ -160,11 +161,13 @@ class ProcessMarkUp:
     def get_bsmarkup(self):
         return self.soup
 
-    def get_icon(self):
+    def get_icon(self, url=None):
         icon_link = self.soup.find("link", rel="icon")
         if icon_link:
             return icon_link.get("href")
-        return
+        elif url:
+            website = vendor_fromurl(url)
+            return icon_url_from_source.get(website)
 
 
 def clean_image_url(entry_helper_object, parser):
@@ -290,13 +293,17 @@ def save_to_db(db_object, data):
         logger.exception(f"cpu celery DatabaseError exception from save_to_db....: {e}")
 
 
-def save_feed(dbmodel):
+def save_feed(dbmodel, tagmodel):
     def to_db(**kwargs):
         hash_id_exists = dbmodel.objects.filter(hash_id=kwargs.get("hash_id")).exists()
         gid_exsits = dbmodel.objects.filter(gid=kwargs.get("gid")).exists()
 
         if not (gid_exsits or hash_id_exists):
-            dbmodel.objects.create(**kwargs)
+            instance = dbmodel.objects.create(**kwargs)
+            if not tagmodel:
+                return
+            tag, _ = tagmodel.objects.get_or_create(tag_name=kwargs.get("scope"))
+            tag.posts.add(instance)
 
     return to_db
 

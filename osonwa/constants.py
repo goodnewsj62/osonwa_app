@@ -167,3 +167,17 @@ article_fields = [
     "m_name",
     "logo_url",
 ]
+
+
+icon_url_from_source = {
+    "appleinsider": "https://photos5.appleinsider.com/v10/images/logo-2x.png",
+    "thenextweb": "https://next.tnwcdn.com/assets/img/favicon/favicon-48x48.png",
+    "techmeme": "https://techmeme.com/img/favicon.ico",
+    "theverge": "https://www.theverge.com/icons/android_chrome_192x192.png",
+    "washingtonpost": "https://www.washingtonpost.com/favicon.svg",
+    "vulcanpost": "https://vulcanpost.com/wp-content/uploads/2021/09/logo-vulcan.png",
+    "arstechnica": "https://cdn.arstechnica.net/favicon.ico",
+    "erpinnews": "https://erpinnews.com/wp-content/uploads/2022/01/favicon-300x300.png",
+    "erpnews": "https://erpnews.com/v2/wp-content/uploads/2018/11/mobile-logo-white@2x.png",
+    "dev": "https://res.cloudinary.com/practicaldev/image/fetch/s--E8ak4Hr1--/c_limit,f_auto,fl_progressive,q_auto,w_32/https://dev-to.s3.us-east-2.amazonaws.com/favicon.ico",
+}

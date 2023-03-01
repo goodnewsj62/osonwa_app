@@ -2,7 +2,7 @@ import json
 
 from celery import group, shared_task
 
-from articles_feed.models import ArticleFeed
+from articles_feed.models import ArticleFeed, ArticleTag
 from articles_feed.scrappers_strategies import (
     CssTrickStrategy,
     DigitalOceanStrategy,
@@ -80,7 +80,7 @@ def process_and_create_article_from_htmlstr(html_string, url, scrape_strategies)
     process_markup = ProcessMarkUp(html_string)
     soup = process_markup.get_bsmarkup()
     strategy = scrape_strategies[vendor](soup)  # pass soup to class
-    create_func = create_article(vendor, process_markup.get_icon())
+    create_func = create_article(vendor, process_markup.get_icon(url))
     strategy.handle(create_func)
 
 
@@ -108,6 +108,9 @@ def create_article(vendor, site_icon):
                 website=vendor,
                 scope="web development",
             )
+
+            instance_, _ = ArticleTag.objects.get_or_create(tag_name="web development")
+            instance_.posts.add(instance)
 
     return _create
 
@@ -141,5 +144,5 @@ def process_articles_entries_and_save(data: dict):
         rawfeed_dump_instance = RawFeed.objects.get(id=data.pop("raw_id"))
         entries = json.loads(rawfeed_dump_instance.string_blob)
         data.update({"entries": entries})
-        process_entries(data, save_feed(ArticleFeed))
+        process_entries(data, save_feed(ArticleFeed, ArticleTag))
         rawfeed_dump_instance.delete()

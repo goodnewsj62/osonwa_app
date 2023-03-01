@@ -23,6 +23,7 @@ from .helpers import (
     get_queryset_and_serializer,
     get_content_type,
     get_articles_qs,
+    create_comment_notification,
 )
 
 # Create your views here.
@@ -176,7 +177,9 @@ class CommentView(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     def perform_create(self, serializer):
-        return serializer.save(created_by=self.request.user)
+        instance = serializer.save(created_by=self.request.user)
+        create_comment_notification(creator=self.request.user, comment=instance)
+        return instance
 
 
 class NewsView(viewsets.ModelViewSet):
@@ -334,7 +337,6 @@ class ArticleView(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         filter_params = request.query_params.get("filter", "[]")
-        import json
 
         type_ = request.query_params.get("type", "internal")
         qs = get_articles_qs(filter_params, type_, request)
@@ -378,4 +380,19 @@ class SearchView(APIView, pagination.PageNumberPagination):
         queryset = post_qs.union(article_qs, news_qs).order_by("-date_published")
         page = self.paginate_queryset(queryset, request, self)
         serializer = ArticleUnionSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+
+class WebsiteView(APIView, pagination.PageNumberPagination):
+    def get(self, request, *args, **kwargs):
+        type_ = request.query_params.get("type")
+        website = request.query_params.get("name")
+        qs = (
+            ArticleFeed.objects.filter(website=website)
+            if type_ == "article"
+            else NewsFeed.objects.filter(website=website)
+        )
+        page = self.paginate_queryset(qs.order_by("-date_published"), request, self)
+        ctx = {"request": request}
+        serializer = PostSerializer(page, many=True, context=ctx)
         return self.get_paginated_response(serializer.data)
