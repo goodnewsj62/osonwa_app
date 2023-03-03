@@ -23,7 +23,7 @@ cryptography==39.0.0
 dataclasses-json==0.5.7
 Deprecated==1.2.13
 Django==4.0.4
-django-celery-beat==2.3.0
+django-celery-beat==2.4.0
 django-cors-headers==3.13.0
 django-quill-editor==0.1.40
 django-timezone-field==5.0

@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     # third party
     "corsheaders",
     "rest_framework",
+    "django_celery_beat",
     # "rest_framework_simplejwt",
     "django_quill",
     # custom apps
@@ -107,9 +108,19 @@ DATABASES = {
     }
 }
 
+if not DEBUG:
+    CORS_ALLOWED_ORIGINS = [f"https://{os.getenv('SITE_DOMAIN')}"]
+    SERVER_DOMAINS = [
+        os.getenv("SERVER_IP"),
+        os.getenv("SITE_DOMAIN"),
+        os.getenv("SITE_SUB"),
+    ]
+else:
+    SERVER_DOMAINS = []
+    CORS_ALLOW_ALL_ORIGINS = True
 
-ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1", "osonwa.com", "osonwa"]
-CORS_ALLOW_ALL_ORIGINS = True
+ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1", *SERVER_DOMAINS]
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -189,7 +200,6 @@ SIMPLE_JWT = {
 CELERY_BROKER_URL = "redis://redisdb:6379"
 CELERY_RESULT_BACKEND = "redis://redisdb:6379"
 CELERYBEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
-CELERY_ACKS_LATE = True
 CELERY_CREATE_MISSING_QUEUES = True
 
 
