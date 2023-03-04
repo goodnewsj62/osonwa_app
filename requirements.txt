@@ -91,6 +91,7 @@ typing-inspect==0.8.0
 tzdata==2022.1
 uritemplate==4.1.1
 urllib3==1.26.9
+uWSGI==2.0.21
 vine==5.0.0
 wcwidth==0.2.5
 wrapt==1.14.1

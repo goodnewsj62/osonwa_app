@@ -29,4 +29,4 @@ COPY ../ /app/www/
 
 EXPOSE 8000
 
-CMD ["uwsgi",  "--ini", "osonwa.ini"]
+CMD ["celery", "-A", "osonwa" ,"worker", "-l info" "-P prefork" "-Q cpu","--scheduler","django_celery_beat.schedulers:DatabaseScheduler"]

@@ -2,7 +2,7 @@ import os
 from google.oauth2 import id_token
 from google.auth.transport import requests
 
-# from pyfacebook import FacebookApi
+from pyfacebook import FacebookApi
 from pytwitter import Api as ApiV2
 from twitter import Api
 
@@ -22,15 +22,14 @@ class GoogleHelper:
 class FacebookHelper:
     @staticmethod
     def verify(token, user_id):
-        pass
-        # try:
-        #     fb = FacebookApi(access_token=token)
-        #     resp = fb.user.get_info(
-        #         user_id=user_id, fields=["id", "email"], return_json=True
-        #     )
-        #     return True, resp
-        # except ValueError:
-        #     return False, {}
+        try:
+            fb = FacebookApi(access_token=token)
+            resp = fb.user.get_info(
+                user_id=user_id, fields=["id", "email"], return_json=True
+            )
+            return True, resp
+        except ValueError:
+            return False, {}
 
 
 class TwitterHelper:
