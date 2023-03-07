@@ -14,4 +14,5 @@ def send_email(email, key):
         message=message_text,
         recipient_list=[email],
         html_message=html_str,
+        from_email="info@osonwa.com",
     )

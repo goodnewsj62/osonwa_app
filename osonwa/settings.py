@@ -36,7 +36,7 @@ else:
 
 AUTH_USER_MODEL = "account.User"
 
-ADMINS = [("osonwa", "osonwajohn@gmail.com")]
+ADMINS = [("osonwa", "osonwajohn@gmail.com", "info", "info@osonwa.com")]
 
 
 # Application definition
@@ -168,7 +168,7 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 # Email Settings
-EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
+# EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 EMAIL_HOST = os.getenv("HOST")
 EMAIL_PORT = os.getenv("PORT")
 EMAIL_HOST_USER = os.getenv("USER")
