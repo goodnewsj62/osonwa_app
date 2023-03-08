@@ -36,7 +36,7 @@ else:
 
 AUTH_USER_MODEL = "account.User"
 
-ADMINS = [("osonwa", "osonwajohn@gmail.com", "info", "info@osonwa.com")]
+ADMINS = [("osonwa", "osonwajohn@gmail.com"), ("info", "info@osonwa.com")]
 
 
 # Application definition
