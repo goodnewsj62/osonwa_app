@@ -32,6 +32,7 @@ from osonwa.constants import (
 )
 
 
+@shared_task(queue="cpu")
 def scrape_websites():
     chord = group((make_request.s(url) | extract_info.s()) for url in SCRAPE_URLS)
     chord()
@@ -115,6 +116,7 @@ def create_article(vendor, site_icon):
     return _create
 
 
+@shared_task(queue="cpu")
 def fetch_articles_from_urls():
     scoped_tuples = [
         agile_urls_tuple,

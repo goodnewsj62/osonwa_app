@@ -103,8 +103,8 @@ DATABASES = {
         "NAME": os.getenv("DATABASE_NAME"),
         "USER": os.getenv("DATABASE_USER"),
         "PASSWORD": os.getenv("DATABASE_PASSWORD"),
-        "PORT": 5432,
-        "HOST": "postgresdb",
+        "PORT": os.getenv("DATABASE_PORT", 5432),
+        "HOST": os.getenv("DATABASE_HOST", "postgresdb"),
     }
 }
 
@@ -169,10 +169,10 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 # Email Settings
 # EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
-EMAIL_HOST = os.getenv("HOST")
-EMAIL_PORT = os.getenv("PORT")
-EMAIL_HOST_USER = os.getenv("USER")
-EMAIL_HOST_PASSWORD = os.getenv("PASSWORD")
+EMAIL_HOST = os.getenv("EMAIL_HOST")
+EMAIL_PORT = os.getenv("EMAIL_PORT")
+EMAIL_HOST_USER = os.getenv("EMAIL_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_PASSWORD")
 EMAIL_USE_SSL = True
 
 # Rest framework
@@ -197,8 +197,8 @@ SIMPLE_JWT = {
 
 
 # CELERY
-CELERY_BROKER_URL = "redis://redisdb:6379"
-CELERY_RESULT_BACKEND = "redis://redisdb:6379"
+CELERY_BROKER_URL = os.getenv("BROKER_URL")
+CELERY_RESULT_BACKEND = os.getenv("RESULT_BACKEND")
 CELERYBEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 CELERY_CREATE_MISSING_QUEUES = True
 

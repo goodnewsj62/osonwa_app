@@ -10,6 +10,7 @@ from osonwa.helpers import process_entries, save_feed
 from osonwa.constants import NEWS_RSS_FEED_URLS
 
 
+@shared_task(queue="cpu")
 def fetch_news_rss():
     group_ = group(
         (fetch_rss_entries.s(url, "tech news") | process_entries_and_save.s())
