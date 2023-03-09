@@ -293,17 +293,16 @@ def save_to_db(db_object, data):
         logger.exception(f"cpu celery DatabaseError exception from save_to_db....: {e}")
 
 
-def save_feed(dbmodel, tagmodel):
+def save_feed(dbmodel, tagmodel=None):
     def to_db(**kwargs):
         hash_id_exists = dbmodel.objects.filter(hash_id=kwargs.get("hash_id")).exists()
         gid_exsits = dbmodel.objects.filter(gid=kwargs.get("gid")).exists()
 
         if not (gid_exsits or hash_id_exists):
             instance = dbmodel.objects.create(**kwargs)
-            if not tagmodel:
-                return
-            tag, _ = tagmodel.objects.get_or_create(tag_name=kwargs.get("scope"))
-            tag.posts.add(instance)
+            if tagmodel:
+                tag, _ = tagmodel.objects.get_or_create(tag_name=kwargs.get("scope"))
+                tag.posts.add(instance)
 
     return to_db
 
