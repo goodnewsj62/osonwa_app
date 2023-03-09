@@ -48,7 +48,8 @@ class BaseReactionView(APIView, pagination.PageNumberPagination):
             return Response(self.get_response("remove", model_type))
 
         model.objects.create(user=request.user, content_object=post)
-        create_like_notification(creator=request.user, post=post)
+        if model_type == "like":
+            create_like_notification(creator=request.user, post=post)
         return Response(self.get_response("create", model_type))
 
     def remove_queryset_obj(self, model_type, post, obj):

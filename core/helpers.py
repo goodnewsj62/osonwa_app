@@ -133,11 +133,7 @@ def popular_qs(type_):
 def create_comment_notification(creator, comment):
     content_type = comment.content_type
     if content_type.model_class().__name__.lower() == "comment":
-        params = {
-            "action_by": creator,
-            "action": "mention",
-            "content_object": comment.content_object,
-        }
+        params = {"action_by": creator, "action": "mention", "content_object": comment}
         if creator.id != comment.content_object.created_by.id:
             # no need for notification when i comment on my comment
             params = {**params, "action": "comment"}
@@ -149,10 +145,11 @@ def create_comment_notification(creator, comment):
             Notification.objects.create(**params, owner=user)
 
     elif content_type.model_class().__name__.lower() == "post":
+        print(type(comment.content_object))
         Notification.objects.create(
             action_by=creator,
             action="comment",
-            content_object=comment.content_object,
+            content_object=comment,
             owner=comment.content_object.author,
         )
 

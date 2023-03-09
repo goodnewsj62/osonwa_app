@@ -1,7 +1,6 @@
 from collections import OrderedDict
 
 from rest_framework import serializers
-from account.external_serializer import UserSerializer
 
 from osonwa.constants import post_fields
 from news.models import NewsFeed
@@ -9,6 +8,7 @@ from blog.models import Post
 from account.external_serializer import UserSerializer
 from articles_feed.models import ArticleFeed
 from .models import Comment
+from .relations import ContentTypeRelatedField
 
 
 class PostSerializer(serializers.Serializer):
@@ -146,6 +146,9 @@ class ArticleUnionSerializer(serializers.BaseSerializer):
 
 
 class CommentSerializerExt(serializers.ModelSerializer):
+    content_type = ContentTypeRelatedField(read_only=True)
+    content_object = serializers.SerializerMethodField()
+
     class Meta:
         model = Comment
         fields = "__all__"
@@ -156,6 +159,12 @@ class CommentSerializerExt(serializers.ModelSerializer):
         resp["html"] = instance.content.html
         resp["mentions"] = UserSerializer(instance.mentions.all(), many=True).data
         return resp
+
+    def get_content_object(self, instance):
+        try:
+            return PostSerializer(instance.content_object).data
+        except:
+            return {}
 
 
 class CommentSerializerMixin:
