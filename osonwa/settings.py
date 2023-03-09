@@ -242,6 +242,7 @@ LOGGING = {
             "formatter": "standard",
             "class": "django.utils.log.AdminEmailHandler",
             "filters": ["require_debug_false"],
+            "include_html": True,
         },
     },
     "loggers": {
@@ -253,6 +254,11 @@ LOGGING = {
         "django": {
             "handlers": ["mail_admins", "file", "console"],
             "level": "INFO",
+            "propagate": True,
+        },
+        "django.request": {
+            "handlers": ["mail_admins"],
+            "level": "ERROR",
             "propagate": True,
         },
     },
