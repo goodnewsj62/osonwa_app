@@ -121,7 +121,7 @@ class Notification(models.Model):
     action_by = models.ForeignKey("account.User", null=True, on_delete=models.CASCADE)
     action = models.CharField(max_length=80, choices=ACTIONS, blank=False, null=False)
     post_url = models.URLField(max_length=300, null=True, blank=True)
-    content_type = models.OneToOneField(ContentType, on_delete=models.CASCADE)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveBigIntegerField()
     content_object = GenericForeignKey()
     is_read = models.BooleanField(default=False)

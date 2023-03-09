@@ -52,8 +52,10 @@ class BaseReactionView(APIView, pagination.PageNumberPagination):
         return Response(self.get_response("create", model_type))
 
     def remove_queryset_obj(self, model_type, post, obj):
-        queries = {"like": post.likes.remove(obj), "save": post.saved.remove(obj)}
-        return queries[model_type]
+        if model_type == "like":
+            return post.likes.remove(obj)
+        elif model_type == "save":
+            return post.saved.remove(obj)
 
     def get_model(self, model_type):
         return {"like": Liked, "save": Saved}[model_type]

@@ -139,8 +139,10 @@ def create_comment_notification(creator, comment):
             "content_object": comment.content_object,
         }
         if creator.id != comment.content_object.created_by.id:
+            # no need for notification when i comment on my comment
+            params = {**params, "action": "comment"}
             Notification.objects.create(
-                **params, action="comment", owner=comment.content_object.created_by
+                **params, owner=comment.content_object.created_by
             )
 
         for user in comment.mentions.all():
