@@ -169,3 +169,15 @@ def create_like_notification(creator, post):
             content_object=post,
             owner=post.created_by,
         )
+
+
+def recent_trending_news():
+    pass
+
+
+def recent_tending_articles():
+    pass
+
+
+def recent_trending_post():
+    pass

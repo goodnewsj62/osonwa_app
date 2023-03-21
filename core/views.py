@@ -24,6 +24,7 @@ from .helpers import (
     get_content_type,
     get_articles_qs,
     create_comment_notification,
+    order_by_interactions,
 )
 
 # Create your views here.
@@ -248,10 +249,7 @@ class TrendingView(BaseAggApiView):
             return self.order_by_interactions(queryset)
 
     def order_by_interactions(self, qs):
-        return qs.annotate(
-            likes_count=Count("likes", distinct=True),
-            comments_count=Count("comments", distinct=True),
-        ).order_by("-date_published", "-likes_count", "-comments_count")
+        return order_by_interactions(qs)
 
 
 class FreshView(BaseAggApiView):
