@@ -77,3 +77,14 @@ class Comment(GenericRelationship):
 
     def __str__(self):
         return self.created_by.username
+
+
+class SocialHandlesPosted(GenericRelationship):
+    media_name = models.TextField()
+    date_created = models.DateTimeField(default=timezone.now)
+
+    def get_model_type(self):
+        return self.content_type.model_class().__name__.lower()
+
+    def __str__(self) -> str:
+        return f"{self.get_model_type()}: {self.object_id}"

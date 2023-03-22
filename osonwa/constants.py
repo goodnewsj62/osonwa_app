@@ -16,6 +16,7 @@ NEWS_RSS_FEED_URLS = [
     r"https://lwn.net/headlines/newrss",
     r"https://erpinnews.com/feed/",
     r"https://erpnews.com/feed/",
+    r"https://techcrunch.com/feed/",
 ]
 
 

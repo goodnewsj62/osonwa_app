@@ -7,7 +7,7 @@ from django_quill.fields import QuillField
 from django.template.defaultfilters import slugify
 from django.core.validators import FileExtensionValidator
 from django.contrib.contenttypes.fields import GenericRelation
-from core.models import Liked, Saved, Comment
+from core.models import Liked, Saved, Comment, SocialHandlesPosted
 
 
 from osonwa.helpers import generate_b64_uuid_string, inmemory_wrapper
@@ -66,6 +66,7 @@ class Post(models.Model):
     likes = GenericRelation(Liked, related_query_name="post")
     saved = GenericRelation(Saved, related_query_name="post")
     comments = GenericRelation(Comment, related_query_name="post")
+    social_uploaded = GenericRelation(SocialHandlesPosted, related_query_name="post")
 
     class Meta:
         verbose_name = "post"

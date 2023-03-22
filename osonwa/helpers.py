@@ -223,13 +223,15 @@ def dictfrom_django_choice_field(dj_choices):
     return {choice[0]: choice[1] for choice in dj_choices}
 
 
-def md5_hex_digest(text: str):
+def md5_hex_digest(text: str, repr=""):
     if not text:
         text = ""
 
     date = datetime.now(tz=tz.utc).strftime("%Y-%m-%d")
     # we use date so no article is fetched with same topic for a single day
-    md5_hash = hashlib.md5(f"{text}{date}".encode())
+    byte_str = repr.format(text, date) if repr else f"{text}{date}".encode()
+    md5_hash = hashlib.md5(byte_str)
+
     return str(md5_hash.hexdigest())
 
 

@@ -171,13 +171,8 @@ def create_like_notification(creator, post):
         )
 
 
-def recent_trending_news():
-    pass
-
-
-def recent_tending_articles():
-    pass
-
-
-def recent_trending_post():
-    pass
+def order_by_interactions(qs):
+    qs.annotate(
+        likes_count=Count("likes", distinct=True),
+        comments_count=Count("comments", distinct=True),
+    ).order_by("-date_published", "-likes_count", "-comments_count")
