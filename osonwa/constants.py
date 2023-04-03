@@ -17,8 +17,25 @@ NEWS_RSS_FEED_URLS = [
     r"https://erpinnews.com/feed/",
     r"https://erpnews.com/feed/",
     r"https://techcrunch.com/feed/",
+    r"https://www.cnet.com/rss/news/",
+    r"https://www.engadget.com/rss.xml",
+    r"https://www.zdnet.com/news/rss.xml",
+    r"http://feeds.bbci.co.uk/news/technology/rss.xml",
+    r"http://feeds.feedburner.com/venturebeat/SZYF",
+    r"https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml",
+    r"https://www.androidcentral.com/rss.xml",
+    r"https://hackaday.com/blog/feed/",
+    r"https://techaeris.com/feed/",
+    r"https://www.techradar247.com/feed/",
+    r"http://feeds.feedburner.com/ausdroid/feed",
+    r"https://digitalample.com/feed/",
+    r"https://irishtechnews.ie/feed/",
+    r"https://gizmodo.com/rss",
+    r"https://www.ecoustics.com/feed/",
+    r"https://feeds.feedburner.com/oreilly/radar/atom",
+    r"https://www.technologyreview.com/feed/",
+    r"https://www.techhive.com/feed",
 ]
-
 
 AGILE_RSS_FEED_URLS = [
     r"https://www.leadingagile.com/blog/feed/",
